@@ -20,6 +20,25 @@
     max-width: 480px;
     margin: 0 auto;
     padding: 24px 16px 40px;
+    text-align: center;
+  }
+  .site-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin: 0 0 16px;
+    color: #1E293B;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #DDE2E8;
+    margin: 0 0 24px;
+  }
+  .register-heading {
+    font-size: 16px;
+    font-weight: 700;
+    color: #B45309;
+    margin: 0 0 8px;
   }
   .greeting {
     font-size: 14px;
@@ -92,6 +111,16 @@
 </head>
 <body>
 <div class="wrap">
+  <h1 class="site-title">もぐもぐ農園勤怠</h1>
+  <hr class="divider">
+
+  <div class="register-box" id="registerBox" style="display:none;">
+    <p class="register-heading">⚠ 未登録です</p>
+    <p>お名前（フルネーム）を入力して登録してください。</p>
+    <input type="text" id="nameInput" placeholder="例：田中 太郎">
+    <button class="btn btn-in" onclick="submitName()">登録する</button>
+  </div>
+
   <div class="greeting" id="greeting">読み込み中...</div>
   <div class="clock" id="clock">--:--</div>
   <div class="date" id="dateLabel"></div>
@@ -101,12 +130,6 @@
   <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
 
   <div class="status" id="status"></div>
-
-  <div class="register-box" id="registerBox" style="display:none;">
-    <p>初めてのご利用ですね。お名前（フルネーム）を入力してください。</p>
-    <input type="text" id="nameInput" placeholder="例：田中 太郎">
-    <button class="btn btn-in" onclick="submitName()">登録する</button>
-  </div>
 </div>
 
 <script>
