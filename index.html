@@ -342,7 +342,7 @@ function getLocation() {
 function runAction(action, needsLocation) {
   if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
   setButtonsDisabled(true);
-  setStatus('loading', '処理中...');
+  setStatus('loading', '処理中...しばらくお待ちください');
 
   var locationPromise = needsLocation ? getLocation() : Promise.resolve({ lat: '', lng: '' });
 
@@ -410,7 +410,7 @@ function submitName() {
   var name = input.value.trim();
   if (!name) { setStatus('error', 'お名前を入力してください。'); document.getElementById('status').classList.add('show'); return; }
 
-  setStatus('loading', '確認中…');
+  setStatus('loading', '確認中…しばらくお待ちください');
   document.getElementById('status').classList.add('show');
 
   callServer({ action: 'registerByName', userId: profile.userId, inputName: name }).then(function (result) {
@@ -441,18 +441,18 @@ function withTimeout(promise, ms, stepName) {
 if (typeof liff === 'undefined') {
   setStatus('error', 'LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
 } else {
-  setStatus('loading', '読み込み中…');
+  setStatus('loading', '読み込み中…しばらくお待ちください');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000, 'STEP1(init)').then(function () {
     if (!liff.isLoggedIn()) {
       setStatus('loading', 'ログイン処理中です。少し待ってから操作してください…');
       liff.login();
       return Promise.reject('LOGIN_REDIRECT');
     }
-    setStatus('loading', 'ユーザー情報を取得中…');
+    setStatus('loading', 'ユーザー情報を取得中…しばらくお待ちください');
     return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
   }).then(function (p) {
     profile = p;
-    setStatus('loading', 'ユーザー確認中…');
+    setStatus('loading', 'ユーザー確認中…しばらくお待ちください');
     return callServer({ action: 'init', userId: p.userId });
   }).then(function (result) {
     if (result.status === 'ok') {
