@@ -32,13 +32,19 @@
   .divider {
     border: none;
     border-top: 1px solid #DDE2E8;
-    margin: 0 0 24px;
+    margin: 24px 0;
   }
   .register-heading {
     font-size: 16px;
     font-weight: 700;
     color: #B45309;
     margin: 0 0 8px;
+  }
+  .location-notice {
+    font-size: 12px;
+    color: #94A3B8;
+    margin: 24px 0 0;
+    line-height: 1.6;
   }
   .greeting {
     font-size: 14px;
@@ -130,6 +136,9 @@
   <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
 
   <div class="status" id="status"></div>
+
+  <hr class="divider">
+  <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
 </div>
 
 <script>
@@ -161,6 +170,26 @@ function setButtonsDisabled(disabled) {
   document.getElementById('btnIn').disabled = disabled;
   document.getElementById('btnBreak').disabled = disabled;
   document.getElementById('btnOut').disabled = disabled;
+}
+
+// 出退勤の状態に応じて、押せるボタンだけを有効にする
+function applyDayStatus(day, breakUsed) {
+  var btnIn = document.getElementById('btnIn');
+  var btnBreak = document.getElementById('btnBreak');
+  var btnOut = document.getElementById('btnOut');
+  if (day === 'none') {
+    btnIn.disabled = false;
+    btnBreak.disabled = true;
+    btnOut.disabled = true;
+  } else if (day === 'working') {
+    btnIn.disabled = true;
+    btnBreak.disabled = !!breakUsed;
+    btnOut.disabled = false;
+  } else { // done
+    btnIn.disabled = true;
+    btnBreak.disabled = true;
+    btnOut.disabled = true;
+  }
 }
 
 function callServer(payload) {
@@ -199,9 +228,11 @@ function runAction(action, needsLocation) {
     });
   }).then(function (result) {
     setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
+    return callServer({ action: 'checkStatus', userId: profile.userId });
+  }).then(function (st) {
+    if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
   }).catch(function () {
     setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-  }).finally(function () {
     setButtonsDisabled(false);
   });
 }
@@ -224,7 +255,9 @@ function submitName() {
       document.getElementById('registerBox').style.display = 'none';
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
-      setButtonsDisabled(false);
+      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
+        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+      });
     } else {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
     }
@@ -265,7 +298,9 @@ if (typeof liff === 'undefined') {
     if (result.status === 'ok') {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
-      setButtonsDisabled(false);
+      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
+        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+      });
     } else if (result.status === 'needName') {
       document.getElementById('status').classList.remove('show');
       document.getElementById('registerBox').style.display = 'block';
