@@ -63,6 +63,22 @@
     color: #64748B;
     margin-bottom: 28px;
   }
+  .today-summary {
+    margin-bottom: 20px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    padding: 6px 0;
+  }
+  .summary-row span {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+  }
   .btn {
     display: flex;
     align-items: center;
@@ -131,6 +147,12 @@
   <div class="clock" id="clock">--:--</div>
   <div class="date" id="dateLabel"></div>
 
+  <div class="today-summary" id="todaySummary">
+    <div class="summary-row" id="rowIn" style="display:none;">出勤　<span id="timeIn"></span></div>
+    <div class="summary-row" id="rowBreak" style="display:none;">休憩　<span id="timeBreak"></span></div>
+    <div class="summary-row" id="rowOut" style="display:none;">退勤　<span id="timeOut"></span></div>
+  </div>
+
   <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
   <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
   <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
@@ -173,7 +195,7 @@ function setButtonsDisabled(disabled) {
 }
 
 // 出退勤の状態に応じて、押せるボタンだけを有効にする
-function applyDayStatus(day, breakUsed) {
+function applyDayStatus(day, breakUsed, times) {
   var btnIn = document.getElementById('btnIn');
   var btnBreak = document.getElementById('btnBreak');
   var btnOut = document.getElementById('btnOut');
@@ -190,6 +212,23 @@ function applyDayStatus(day, breakUsed) {
     btnBreak.disabled = true;
     btnOut.disabled = true;
   }
+  updateTodaySummary(times || {});
+}
+
+function toggleSummaryRow_(rowId, spanId, value) {
+  var row = document.getElementById(rowId);
+  if (value) {
+    document.getElementById(spanId).textContent = value;
+    row.style.display = 'flex';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+function updateTodaySummary(times) {
+  toggleSummaryRow_('rowIn', 'timeIn', times.clockInTime);
+  toggleSummaryRow_('rowBreak', 'timeBreak', times.breakTime);
+  toggleSummaryRow_('rowOut', 'timeOut', times.clockOutTime);
 }
 
 function callServer(payload) {
@@ -229,7 +268,7 @@ function runAction(action, needsLocation) {
   }).then(function (result) {
     setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
     return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-      if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+      if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
     }).catch(function () {
       // 状態確認だけ失敗した場合は、誤操作を防ぐためボタンは無効のままにする
     });
@@ -258,7 +297,7 @@ function submitName() {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
       return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
       });
     } else {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
@@ -301,7 +340,7 @@ if (typeof liff === 'undefined') {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
       return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
       });
     } else if (result.status === 'needName') {
       document.getElementById('status').classList.remove('show');
