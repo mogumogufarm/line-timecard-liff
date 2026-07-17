@@ -356,11 +356,16 @@ function runAction(action, needsLocation) {
     });
   }).then(function (result) {
     setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-    return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-      if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
-    }).catch(function () {
-      // 状態確認だけ失敗した場合は、誤操作を防ぐためボタンは無効のままにする
-    });
+    if (result.status === 'ok') {
+      applyDayStatus(result.day, result.breakUsed, result);
+    } else {
+      // 失敗時は表示とサーバーの状態がずれている可能性があるため、念のため再確認する
+      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
+        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
+      }).catch(function () {
+        // 状態確認だけ失敗した場合は、誤操作を防ぐためボタンは無効のままにする
+      });
+    }
   }).catch(function () {
     setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
     setButtonsDisabled(false); // 打刻自体が失敗した場合のみ、押し直せるようにする
@@ -413,9 +418,7 @@ function submitName() {
       document.getElementById('registerBox').style.display = 'none';
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
-      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
-      });
+      applyDayStatus(result.day, result.breakUsed, result);
     } else {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
     }
@@ -451,14 +454,12 @@ if (typeof liff === 'undefined') {
   }).then(function (p) {
     profile = p;
     setStatus('loading', 'STEP4：ご利用登録を確認中…');
-    return callServer({ action: 'checkRegistered', userId: p.userId });
+    return callServer({ action: 'init', userId: p.userId });
   }).then(function (result) {
     if (result.status === 'ok') {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
-      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
-      });
+      applyDayStatus(result.day, result.breakUsed, result);
     } else if (result.status === 'needName') {
       document.getElementById('status').classList.remove('show');
       document.getElementById('registerBox').style.display = 'block';
