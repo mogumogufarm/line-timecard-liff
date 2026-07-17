@@ -137,7 +137,8 @@
   .btn-break{ background: #F59E0B; }
   .btn-out  { background: #DC2626; }
   .status {
-    margin-top: 18px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     padding: 14px 16px;
     border-radius: 12px;
     font-size: 13px;
@@ -221,6 +222,7 @@
     </div>
 
     <div class="greeting" id="greeting">読み込み中...</div>
+    <div class="status" id="status"></div>
     <div class="clock" id="clock">--:--</div>
     <div class="date" id="dateLabel"></div>
 
@@ -234,8 +236,6 @@
       <div class="summary-row" id="rowBreak"><span class="label">休憩</span><span class="value" id="timeBreak">記録なし</span></div>
       <div class="summary-row" id="rowOut"><span class="label">退勤</span><span class="value" id="timeOut">記録なし</span></div>
     </div>
-
-    <div class="status" id="status"></div>
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
@@ -439,21 +439,20 @@ function withTimeout(promise, ms, stepName) {
 }
 
 if (typeof liff === 'undefined') {
-  setStatus('error', 'STEP0で失敗：LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
+  setStatus('error', 'LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
 } else {
-  setStatus('loading', 'STEP1：liff.init 実行中…');
+  setStatus('loading', '読み込み中…');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000, 'STEP1(init)').then(function () {
-    setStatus('loading', 'STEP2：ログイン状態を確認中…');
     if (!liff.isLoggedIn()) {
-      setStatus('loading', 'STEP2：ログイン処理中です。少し待ってから操作してください…');
+      setStatus('loading', 'ログイン処理中です。少し待ってから操作してください…');
       liff.login();
       return Promise.reject('LOGIN_REDIRECT');
     }
-    setStatus('loading', 'STEP3：プロフィール取得中…');
+    setStatus('loading', 'ユーザー情報を取得中…');
     return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
   }).then(function (p) {
     profile = p;
-    setStatus('loading', 'STEP4：ご利用登録を確認中…');
+    setStatus('loading', 'ユーザー確認中…');
     return callServer({ action: 'init', userId: p.userId });
   }).then(function (result) {
     if (result.status === 'ok') {
