@@ -163,6 +163,48 @@
     font-family: inherit;
     text-align: center;
   }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 30, 22, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+  }
+  .modal-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 26px 22px 20px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 10px 34px rgba(0,0,0,0.22);
+    text-align: center;
+  }
+  .modal-box p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #223327;
+    margin: 0 0 22px;
+    line-height: 1.6;
+  }
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 13px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .modal-btn.cancel { background: #E5E7EB; color: #374151; }
+  .modal-btn.ok { background: #16A34A; color: #fff; }
 </style>
 </head>
 <body>
@@ -197,6 +239,16 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none;">
+  <div class="modal-box">
+    <p id="modalMessage"></p>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
+      <button class="modal-btn ok" id="modalOk">OK</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -315,9 +367,37 @@ function runAction(action, needsLocation) {
   });
 }
 
-function handleClockIn()  { if (confirm('出勤を記録しますが、よろしいですか？')) runAction('clockin', true); }
-function handleBreak()    { if (confirm('休憩を記録しますが、よろしいですか？')) runAction('break', false); }
-function handleClockOut() { if (confirm('退勤を記録しますが、よろしいですか？')) runAction('clockout', true); }
+function showConfirm(message) {
+  return new Promise(function (resolve) {
+    var overlay = document.getElementById('modalOverlay');
+    var okBtn = document.getElementById('modalOk');
+    var cancelBtn = document.getElementById('modalCancel');
+    document.getElementById('modalMessage').textContent = message;
+    overlay.style.display = 'flex';
+
+    function cleanup(result) {
+      overlay.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+function handleClockIn() {
+  showConfirm('出勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockin', true); });
+}
+function handleBreak() {
+  showConfirm('休憩を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('break', false); });
+}
+function handleClockOut() {
+  showConfirm('退勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockout', true); });
+}
 
 function submitName() {
   if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
