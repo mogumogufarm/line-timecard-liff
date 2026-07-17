@@ -145,6 +145,7 @@
     line-height: 1.6;
     display: none;
     text-align: left;
+    white-space: pre-line;
   }
   .status.show { display: block; }
   .status.ok    { background: #E6F4EC; color: #1F5233; }
@@ -417,7 +418,7 @@ function submitName() {
     if (result.status === 'ok') {
       document.getElementById('registerBox').style.display = 'none';
       document.getElementById('greeting').textContent = result.name + ' さん';
-      document.getElementById('status').classList.remove('show');
+      setStatus('ok', result.name + 'さん\n登録が完了しました！');
       applyDayStatus(result.day, result.breakUsed, result);
     } else {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
