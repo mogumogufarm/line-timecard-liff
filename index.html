@@ -77,10 +77,19 @@
     color: #6B8F73;
     margin-bottom: 22px;
   }
-  .today-summary {
+  .summary-box {
     margin: 0 0 22px;
-    padding-top: 18px;
-    border-top: 1px dashed #E2E8DE;
+    padding: 16px 18px;
+    border: 1px solid #DCE6DC;
+    border-radius: 14px;
+    background: #FAFCF9;
+  }
+  .summary-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #5B7A62;
+    letter-spacing: 0.05em;
+    margin: 0 0 10px;
   }
   .summary-row {
     display: flex;
@@ -99,11 +108,16 @@
     font-size: 16px;
     color: #223327;
   }
+  .summary-row span.value.empty {
+    font-family: inherit;
+    font-weight: 400;
+    font-size: 13px;
+    color: #A8B5AC;
+  }
   .btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     width: 100%;
     padding: 18px;
     margin-bottom: 12px;
@@ -117,12 +131,11 @@
     box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     transition: opacity 0.15s, transform 0.1s;
   }
-  .btn .icon { font-size: 20px; }
   .btn:active { opacity: 0.8; transform: scale(0.98); }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-  .btn-in   { background: #2F6F4E; }
-  .btn-break{ background: #C9822A; }
-  .btn-out  { background: #4B5563; }
+  .btn-in   { background: #16A34A; }
+  .btn-break{ background: #F59E0B; }
+  .btn-out  { background: #DC2626; }
   .status {
     margin-top: 18px;
     padding: 14px 16px;
@@ -162,22 +175,23 @@
       <p class="register-heading">⚠ 未登録です</p>
       <p>お名前（フルネーム）を入力して登録してください。</p>
       <input type="text" id="nameInput" placeholder="例：田中 太郎">
-      <button class="btn btn-in" onclick="submitName()"><span class="icon">✓</span>登録する</button>
+      <button class="btn btn-in" onclick="submitName()">登録する</button>
     </div>
 
     <div class="greeting" id="greeting">読み込み中...</div>
     <div class="clock" id="clock">--:--</div>
     <div class="date" id="dateLabel"></div>
 
-    <div class="today-summary" id="todaySummary">
-      <div class="summary-row" id="rowIn" style="display:none;"><span class="label">🌅 出勤</span><span class="value" id="timeIn"></span></div>
-      <div class="summary-row" id="rowBreak" style="display:none;"><span class="label">☕ 休憩</span><span class="value" id="timeBreak"></span></div>
-      <div class="summary-row" id="rowOut" style="display:none;"><span class="label">🌇 退勤</span><span class="value" id="timeOut"></span></div>
-    </div>
+    <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
+    <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
+    <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
 
-    <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled><span class="icon">🌅</span>出勤</button>
-    <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled><span class="icon">☕</span>休憩</button>
-    <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled><span class="icon">🌇</span>退勤</button>
+    <div class="summary-box" id="todaySummary">
+      <p class="summary-title">本日の勤務状況</p>
+      <div class="summary-row" id="rowIn"><span class="label">出勤</span><span class="value" id="timeIn">記録なし</span></div>
+      <div class="summary-row" id="rowBreak"><span class="label">休憩</span><span class="value" id="timeBreak">記録なし</span></div>
+      <div class="summary-row" id="rowOut"><span class="label">退勤</span><span class="value" id="timeOut">記録なし</span></div>
+    </div>
 
     <div class="status" id="status"></div>
   </div>
@@ -238,12 +252,13 @@ function applyDayStatus(day, breakUsed, times) {
 }
 
 function toggleSummaryRow_(rowId, spanId, value) {
-  var row = document.getElementById(rowId);
+  var span = document.getElementById(spanId);
   if (value) {
-    document.getElementById(spanId).textContent = value;
-    row.style.display = 'flex';
+    span.textContent = value;
+    span.classList.remove('empty');
   } else {
-    row.style.display = 'none';
+    span.textContent = '記録なし';
+    span.classList.add('empty');
   }
 }
 
