@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勤怠打刻</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #F4F6F8;
+    color: #1E293B;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+  .greeting {
+    font-size: 14px;
+    color: #64748B;
+    margin-bottom: 4px;
+  }
+  .clock {
+    font-family: 'Courier New', monospace;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin: 4px 0 24px;
+  }
+  .date {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 28px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 20px;
+    margin-bottom: 14px;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.75; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-in   { background: #0D9488; }
+  .btn-break{ background: #D97706; }
+  .btn-out  { background: #4338CA; }
+  .status {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    display: none;
+  }
+  .status.show { display: block; }
+  .status.ok    { background: #E1F5EE; color: #085041; }
+  .status.error { background: #FCEBEB; color: #791F1F; }
+  .status.loading { background: #F1EFE8; color: #444441; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="greeting" id="greeting">読み込み中...</div>
+  <div class="clock" id="clock">--:--</div>
+  <div class="date" id="dateLabel"></div>
+
+  <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
+  <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
+  <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+// ↓↓↓ この2行を、あなたの実際の値に書き換えてください ↓↓↓
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0rdTpNT8b5z53fqmBLt5PXPZTYBnN1FnuZR4Ln2r-ELm4g/exec; // 例: https://script.google.com/macros/s/xxxxx/exec
+var LIFF_ID = '2010745560-ZPeVu8OW';        // 例: 2010745560-ZPeVu8OW
+// ↑↑↑ ここまで ↑↑↑
+
+var profile = null;
+
+function tickClock() {
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2, '0');
+  var m = String(now.getMinutes()).padStart(2, '0');
+  var s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+  var days = ['日','月','火','水','木','金','土'];
+  document.getElementById('dateLabel').textContent =
+    now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + days[now.getDay()] + '）';
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+function setStatus(type, text) {
+  var el = document.getElementById('status');
+  el.className = 'status show ' + type;
+  el.textContent = text;
+}
+
+function setButtonsDisabled(disabled) {
+  document.getElementById('btnIn').disabled = disabled;
+  document.getElementById('btnBreak').disabled = disabled;
+  document.getElementById('btnOut').disabled = disabled;
+}
+
+function callServer(payload) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function (res) { return res.json(); });
+}
+
+function getLocation() {
+  return new Promise(function (resolve) {
+    if (!navigator.geolocation) { resolve({ lat: '', lng: '' }); return; }
+    navigator.geolocation.getCurrentPosition(
+      function (pos) { resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+      function () { resolve({ lat: '', lng: '' }); },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
+}
+
+function runAction(action, needsLocation) {
+  if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
+  setButtonsDisabled(true);
+  setStatus('loading', '処理中...');
+
+  var locationPromise = needsLocation ? getLocation() : Promise.resolve({ lat: '', lng: '' });
+
+  locationPromise.then(function (loc) {
+    return callServer({
+      action: action,
+      userId: profile.userId,
+      displayName: profile.displayName,
+      lat: loc.lat,
+      lng: loc.lng
+    });
+  }).then(function (result) {
+    setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
+  }).catch(function () {
+    setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
+  }).finally(function () {
+    setButtonsDisabled(false);
+  });
+}
+
+function handleClockIn()  { runAction('clockin', true); }
+function handleBreak()    { runAction('break', false); }
+function handleClockOut() { runAction('clockout', true); }
+
+document.getElementById('greeting').textContent = '';
+
+function withTimeout(promise, ms, stepName) {
+  return Promise.race([
+    promise,
+    new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error('TIMEOUT:' + stepName)); }, ms);
+    })
+  ]);
+}
+
+if (typeof liff === 'undefined') {
+  setStatus('error', 'STEP0で失敗：LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
+} else {
+  setStatus('loading', 'STEP1：liff.init 実行中…');
+  withTimeout(liff.init({ liffId: LIFF_ID }), 10000, 'STEP1(init)').then(function () {
+    setStatus('loading', 'STEP2：ログイン状態を確認中…');
+    if (!liff.isLoggedIn()) {
+      setStatus('loading', 'STEP2：ログイン処理中です。少し待ってから操作してください…');
+      liff.login();
+      return Promise.reject('LOGIN_REDIRECT');
+    }
+    setStatus('loading', 'STEP3：プロフィール取得中…');
+    return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
+  }).then(function (p) {
+    profile = p;
+    document.getElementById('greeting').textContent = p.displayName + ' さん';
+    document.getElementById('status').classList.remove('show');
+    setButtonsDisabled(false);
+  }).catch(function (err) {
+    if (err === 'LOGIN_REDIRECT') return; // ログイン画面へ遷移中なので何もしない
+    var detail = (err && err.message) ? err.message
+               : (typeof err === 'string') ? err
+               : JSON.stringify(err);
+    setStatus('error', '初期化エラー：' + detail + '\n(この文言をそのまま開発者に伝えてください)');
+  });
+}
+</script>
+</body>
+</html>
