@@ -228,12 +228,14 @@ function runAction(action, needsLocation) {
     });
   }).then(function (result) {
     setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-    return callServer({ action: 'checkStatus', userId: profile.userId });
-  }).then(function (st) {
-    if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+    return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
+      if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed);
+    }).catch(function () {
+      // 状態確認だけ失敗した場合は、誤操作を防ぐためボタンは無効のままにする
+    });
   }).catch(function () {
     setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-    setButtonsDisabled(false);
+    setButtonsDisabled(false); // 打刻自体が失敗した場合のみ、押し直せるようにする
   });
 }
 
