@@ -315,9 +315,9 @@ function runAction(action, needsLocation) {
   });
 }
 
-function handleClockIn()  { runAction('clockin', true); }
-function handleBreak()    { runAction('break', false); }
-function handleClockOut() { runAction('clockout', true); }
+function handleClockIn()  { if (confirm('出勤を記録しますが、よろしいですか？')) runAction('clockin', true); }
+function handleBreak()    { if (confirm('休憩を記録しますが、よろしいですか？')) runAction('break', false); }
+function handleClockOut() { if (confirm('退勤を記録しますが、よろしいですか？')) runAction('clockout', true); }
 
 function submitName() {
   if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
