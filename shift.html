@@ -68,6 +68,25 @@
   .cal-day.disabled { color: #C7D0C9; background: #F7F9F6; }
   .cal-day.chosen { background: #E6F4EC; border-color: #16A34A; }
   .cal-type-label { font-size: 9px; font-weight: 700; color: #16A34A; margin-top: 2px; }
+  .cal-day.cal-status-pending { background: #FFF7E6; border-color: #F5DFAE; }
+  .cal-day.cal-status-pending .cal-type-label { color: #8A5A0B; }
+  .cal-day.cal-status-confirmed { background: #E6F4EC; border-color: #BEE0CC; }
+  .cal-day.cal-status-confirmed .cal-type-label { color: #16A34A; }
+  .cal-day.cal-status-rejected { background: #FCEBEB; border-color: #F3C9C9; color: #B9A6A6; }
+  .cal-day.cal-status-rejected .cal-type-label { color: #C97C7C; }
+
+  .legend-row { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #5B7A62; margin: 0 0 12px; }
+  .legend-row .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
+  .dot-empty { background: #fff; border: 1px solid #CBD5C9; }
+  .dot-pending { background: #FFF7E6; border: 1px solid #F5DFAE; }
+  .dot-confirmed { background: #E6F4EC; border: 1px solid #BEE0CC; }
+  .dot-rejected { background: #FCEBEB; border: 1px solid #F3C9C9; }
+
+  .day-row-submitted { background: #F3F5F2; }
+  .day-submitted-info { margin: 0; font-size: 13px; font-weight: 700; }
+  .day-submitted-info.status-pending { color: #8A5A0B; }
+  .day-submitted-info.status-confirmed { color: #16A34A; }
+  .day-submitted-info.status-rejected { color: #C97C7C; }
 
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(20, 30, 22, 0.5);
@@ -103,6 +122,13 @@
       <div class="tabs">
         <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
         <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
+      </div>
+
+      <div class="legend-row">
+        <span><i class="dot dot-empty"></i>未提出</span>
+        <span><i class="dot dot-pending"></i>未確定</span>
+        <span><i class="dot dot-confirmed"></i>確定</span>
+        <span><i class="dot dot-rejected"></i>見送り</span>
       </div>
 
       <div id="listView">
@@ -151,6 +177,7 @@ var LIFF_ID = '2010745560-7uisGwZP';
 
 var profile = null;
 var selections = {}; // { '2026-07-19': { type: '終日' } } または { type: 'カスタム', startTime: '09:00', endTime: '18:00' }
+var myShiftsByDate = {}; // 提出済みシフト（サーバー側の内容）を日付ごとに保持
 var calendarMonthOffset = 0; // 0=今月, 1=来月, 2=再来月（最大30日先までなので3ヶ月に収まる）
 var modalDateStr = null;
 var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
@@ -165,6 +192,23 @@ function switchTab(tab) {
   if (tab === 'calendar') renderCalendarGrid();
 }
 
+function statusClass(status) {
+  if (status === '確定') return 'confirmed';
+  if (status === '却下') return 'rejected';
+  return 'pending';
+}
+
+function submittedTimeLabel(s) {
+  if (s.status === '確定') return s.confStart + '〜' + s.confEnd;
+  return (s.type === 'カスタム') ? (s.prefStart + '〜' + s.prefEnd) : s.type;
+}
+
+function submittedStatusLabel(s) {
+  if (s.status === '確定') return '確定';
+  if (s.status === '却下') return '見送り';
+  return '未確定（タップで編集）';
+}
+
 function buildDayList() {
   var container = document.getElementById('dayList');
   container.innerHTML = '';
@@ -176,14 +220,28 @@ function buildDayList() {
     var wd = d.getDay();
     var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[wd] + ')';
     var sel = selections[dateStr];
+    var submitted = myShiftsByDate[dateStr];
 
     var row = document.createElement('div');
-    row.className = 'day-row';
+    row.className = 'day-row' + (submitted ? ' day-row-submitted' : '');
 
     var labelEl = document.createElement('p');
     labelEl.className = 'day-label' + ((wd === 0 || wd === 6) ? ' weekend' : '');
     labelEl.textContent = label;
     row.appendChild(labelEl);
+
+    if (submitted) {
+      var info = document.createElement('p');
+      info.className = 'day-submitted-info status-' + statusClass(submitted.status);
+      info.textContent = submittedTimeLabel(submitted) + '　' + submittedStatusLabel(submitted);
+      row.appendChild(info);
+      if (submitted.status === '未確定') {
+        row.style.cursor = 'pointer';
+        row.onclick = function (submitted) { return function () { openModalForEdit(submitted); }; }(submitted);
+      }
+      container.appendChild(row);
+      continue;
+    }
 
     var chipGrid = document.createElement('div');
     chipGrid.className = 'chip-grid';
@@ -288,13 +346,29 @@ function renderCalendarGrid() {
     var dateObj = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d);
     var dateStr = toISO(dateObj);
     var inRange = (dateObj >= today && dateObj <= maxDate);
+    var submitted = myShiftsByDate[dateStr];
     var sel = selections[dateStr];
 
     var cell = document.createElement('div');
-    cell.className = 'cal-day ' + (inRange ? 'enabled' : 'disabled') + (inRange && sel ? ' chosen' : '');
-    cell.innerHTML = d + ((inRange && sel) ? '<div class="cal-type-label">' + calDayLabel(sel) + '</div>' : '');
-    if (inRange) cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
+    var cls = 'cal-day ' + (inRange ? 'enabled' : 'disabled');
+    var labelHtml = '';
 
+    if (inRange && submitted) {
+      cls += ' cal-status-' + statusClass(submitted.status);
+      labelHtml = '<div class="cal-type-label">' + submittedTimeLabel(submitted) + '</div>';
+      if (submitted.status === '未確定') {
+        cell.onclick = function (submitted) { return function () { openModalForEdit(submitted); }; }(submitted);
+      }
+    } else if (inRange && sel) {
+      cls += ' chosen';
+      labelHtml = '<div class="cal-type-label">' + calDayLabel(sel) + '</div>';
+      cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
+    } else if (inRange) {
+      cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
+    }
+
+    cell.className = cls;
+    cell.innerHTML = d + labelHtml;
     grid.appendChild(cell);
   }
 }
@@ -461,10 +535,17 @@ function submitAll() {
 function loadMyShifts() {
   callServer({ action: 'listMyShifts', userId: profile.userId }).then(function (result) {
     var el = document.getElementById('myShiftsList');
+    myShiftsByDate = {};
+
     if (result.status !== 'ok' || !result.shifts || result.shifts.length === 0) {
       el.textContent = '提出済みのシフト希望はまだありません。';
+      buildDayList();
+      renderCalendarGrid();
       return;
     }
+
+    result.shifts.forEach(function (s) { myShiftsByDate[s.date] = s; });
+
     el.innerHTML = '';
     result.shifts.forEach(function (s) {
       var tagColor = s.status === '確定' ? '#16A34A' : (s.status === '却下' ? '#DC2626' : '#C9822A');
@@ -521,6 +602,9 @@ function loadMyShifts() {
 
       el.appendChild(row);
     });
+
+    buildDayList();
+    renderCalendarGrid();
   });
 }
 
