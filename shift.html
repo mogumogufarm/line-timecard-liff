@@ -149,6 +149,7 @@
 
       <div class="my-shifts">
         <p class="my-shifts-title">提出済みのシフト希望</p>
+        <p style="font-size:11px; color:#8AA391; margin:0 0 8px;">変更・取り消しは、上のリスト／カレンダーで該当日をタップしてください</p>
         <div id="myShiftsList" style="font-size:13px; color:#5B7A62;">読み込み中...</div>
       </div>
     </div>
@@ -167,6 +168,19 @@
     <div class="modal-buttons-row">
       <button class="modal-btn close" onclick="cancelModalBtn()">キャンセル</button>
       <button class="modal-btn decide" id="modalDecideBtn" onclick="decideModal()" disabled>決定</button>
+    </div>
+    <p id="modalCancelLink" style="display:none; text-align:center; margin:14px 0 0;">
+      <a href="javascript:void(0)" onclick="requestCancelShift()" style="font-size:12px; color:#DC2626;">このシフト希望を取り消す</a>
+    </p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <p class="modal-title" id="confirmMessage"></p>
+    <div class="modal-buttons-row">
+      <button class="modal-btn close" onclick="closeConfirm(false)">キャンセル</button>
+      <button class="modal-btn decide" style="background:#DC2626;" onclick="closeConfirm(true)">取り消す</button>
     </div>
   </div>
 </div>
@@ -433,6 +447,7 @@ function renderModal() {
   }
 
   updateDecideButtonState();
+  document.getElementById('modalCancelLink').style.display = (modalMode === 'edit') ? 'block' : 'none';
   document.getElementById('dayModal').classList.add('show');
 }
 
@@ -485,6 +500,29 @@ function closeModal() {
   modalDateStr = null;
   modalToken = null;
   modalDraft = null;
+}
+
+// ==== 汎用の確認ポップアップ ====
+var confirmResolver = null;
+
+function showConfirm(message) {
+  document.getElementById('confirmMessage').textContent = message;
+  document.getElementById('confirmModal').classList.add('show');
+  return new Promise(function (resolve) { confirmResolver = resolve; });
+}
+
+function closeConfirm(result) {
+  document.getElementById('confirmModal').classList.remove('show');
+  if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
+}
+
+function requestCancelShift() {
+  var token = modalToken;
+  closeModal();
+  showConfirm('このシフト希望を取り消しますか？').then(function (ok) {
+    if (!ok) return;
+    performCancelShift(token);
+  });
 }
 
 function submitAll() {
@@ -554,51 +592,9 @@ function loadMyShifts() {
 
       var row = document.createElement('div');
       row.className = 'shift-row';
-      row.style.flexDirection = 'column';
-      row.style.alignItems = 'stretch';
-
-      var topLine = document.createElement('div');
-      topLine.style.display = 'flex';
-      topLine.style.justifyContent = 'space-between';
-      topLine.innerHTML =
+      row.innerHTML =
         '<span>' + s.date + ' ' + timeLabel + '</span>' +
         '<span class="shift-tag" style="color:' + tagColor + ';">' + tagLabel + '</span>';
-      row.appendChild(topLine);
-
-      if (s.status === '未確定') {
-        var actions = document.createElement('div');
-        actions.style.marginTop = '4px';
-        actions.style.textAlign = 'right';
-
-        var editLink = document.createElement('a');
-        editLink.href = 'javascript:void(0)';
-        editLink.textContent = '編集';
-        editLink.style.fontSize = '12px';
-        editLink.style.color = '#2F6F4E';
-        editLink.style.marginRight = '14px';
-        editLink.onclick = function (s) { return function () { openModalForEdit(s); }; }(s);
-        actions.appendChild(editLink);
-
-        var cancelLink = document.createElement('a');
-        cancelLink.href = 'javascript:void(0)';
-        cancelLink.textContent = '取り消す';
-        cancelLink.style.fontSize = '12px';
-        cancelLink.style.color = '#DC2626';
-        cancelLink.onclick = function (token, linkEl) {
-          return function () {
-            if (linkEl.dataset.confirming === 'true') {
-              performCancelShift(token);
-              return;
-            }
-            linkEl.dataset.confirming = 'true';
-            linkEl.textContent = '本当に取り消す？';
-            setTimeout(function () { linkEl.dataset.confirming = 'false'; linkEl.textContent = '取り消す'; }, 4000);
-          };
-        }(s.token, cancelLink);
-        actions.appendChild(cancelLink);
-
-        row.appendChild(actions);
-      }
 
       el.appendChild(row);
     });
