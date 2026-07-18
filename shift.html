@@ -80,6 +80,8 @@
   .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .modal-btn.clear { background: #F1F5F0; color: #5B7A62; }
   .modal-btn.close { background: #E5E7EB; color: #374151; }
+  .modal-btn.decide { background: #16A34A; color: #fff; }
+  .modal-btn.decide:disabled { opacity: 0.4; cursor: default; }
 </style>
 </head>
 <body>
@@ -137,8 +139,8 @@
       <select id="modalStart"></select><span>〜</span><select id="modalEnd"></select>
     </div>
     <div class="modal-buttons-row">
-      <button class="modal-btn clear" onclick="clearModalDate()">選択を解除</button>
-      <button class="modal-btn close" onclick="closeModal()">閉じる</button>
+      <button class="modal-btn close" onclick="cancelModalBtn()">キャンセル</button>
+      <button class="modal-btn decide" id="modalDecideBtn" onclick="decideModal()" disabled>決定</button>
     </div>
   </div>
 </div>
@@ -202,10 +204,10 @@ function buildDayList() {
     var endSel = document.createElement('select');
     fillHourOptions(startSel);
     fillHourOptions(endSel);
-    startSel.value = (sel && sel.startTime) || '09:00';
-    endSel.value = (sel && sel.endTime) || '18:00';
-    startSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].startTime = sel.value; }; }(dateStr, startSel);
-    endSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].endTime = sel.value; }; }(dateStr, endSel);
+    startSel.value = (sel && sel.startTime) || '';
+    endSel.value = (sel && sel.endTime) || '';
+    startSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].startTime = sel.value; renderCalendarGrid(); }; }(dateStr, startSel);
+    endSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].endTime = sel.value; renderCalendarGrid(); }; }(dateStr, endSel);
     customBox.appendChild(startSel);
     var tilde = document.createElement('span');
     tilde.textContent = '〜';
@@ -217,7 +219,12 @@ function buildDayList() {
   }
 }
 
+// 先頭に「-」（未選択）を含む時刻プルダウンを作る（6時〜22時、1時間単位）
 function fillHourOptions(sel) {
+  var blank = document.createElement('option');
+  blank.value = '';
+  blank.textContent = '-';
+  sel.appendChild(blank);
   for (var h = 6; h <= 22; h++) {
     var opt = document.createElement('option');
     opt.value = (h < 10 ? '0' + h : h) + ':00';
@@ -226,14 +233,14 @@ function fillHourOptions(sel) {
   }
 }
 
-// 日付に対して区分（午前/午後/終日/カスタム）を選択・解除する。リスト・モーダル共通で使用
+// 日付に対して区分（午前/午後/終日/カスタム）を選択・解除する（リスト用。押した瞬間に反映）
 function selectType(dateStr, type) {
   var current = selections[dateStr];
   if (current && current.type === type) {
     delete selections[dateStr];
   } else if (type === 'カスタム') {
     var prev = (current && current.type === 'カスタム') ? current : null;
-    selections[dateStr] = { type: 'カスタム', startTime: (prev && prev.startTime) || '09:00', endTime: (prev && prev.endTime) || '18:00' };
+    selections[dateStr] = { type: 'カスタム', startTime: (prev && prev.startTime) || '', endTime: (prev && prev.endTime) || '' };
   } else {
     selections[dateStr] = { type: type };
   }
@@ -244,6 +251,13 @@ function selectType(dateStr, type) {
 function changeCalMonth(delta) {
   calendarMonthOffset = Math.max(0, Math.min(2, calendarMonthOffset + delta));
   renderCalendarGrid();
+}
+
+function calDayLabel(sel) {
+  if (sel.type === 'カスタム') {
+    return (sel.startTime && sel.endTime) ? (sel.startTime + '〜' + sel.endTime) : 'カスタム(未設定)';
+  }
+  return sel.type;
 }
 
 function renderCalendarGrid() {
@@ -278,26 +292,51 @@ function renderCalendarGrid() {
 
     var cell = document.createElement('div');
     cell.className = 'cal-day ' + (inRange ? 'enabled' : 'disabled') + (inRange && sel ? ' chosen' : '');
-    cell.innerHTML = d + ((inRange && sel) ? '<div class="cal-type-label">' + sel.type + '</div>' : '');
-    if (inRange) cell.onclick = function (dateStr) { return function () { openModal(dateStr); }; }(dateStr);
+    cell.innerHTML = d + ((inRange && sel) ? '<div class="cal-type-label">' + calDayLabel(sel) + '</div>' : '');
+    if (inRange) cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
 
     grid.appendChild(cell);
   }
 }
 
-function openModal(dateStr) {
+// ==== モーダル（カレンダーから開く／提出済みシフトの編集で開く） ====
+// modalDraft は「決定」を押すまで確定しない一時的な選択内容
+var modalMode = 'new'; // 'new' = カレンダーから新規選択, 'edit' = 提出済みシフトの編集
+var modalToken = null;
+var modalDraft = null;
+
+function openModalForDate(dateStr) {
+  modalMode = 'new';
   modalDateStr = dateStr;
-  var d = new Date(dateStr + 'T00:00:00');
+  modalToken = null;
+  var existing = selections[dateStr];
+  modalDraft = existing ? { type: existing.type, startTime: existing.startTime || '', endTime: existing.endTime || '' } : { type: null, startTime: '', endTime: '' };
+  renderModal();
+}
+
+function openModalForEdit(shift) {
+  modalMode = 'edit';
+  modalDateStr = shift.date;
+  modalToken = shift.token;
+  modalDraft = {
+    type: shift.type,
+    startTime: shift.type === 'カスタム' ? shift.prefStart : '',
+    endTime: shift.type === 'カスタム' ? shift.prefEnd : ''
+  };
+  renderModal();
+}
+
+function renderModal() {
+  var d = new Date(modalDateStr + 'T00:00:00');
   document.getElementById('modalDateLabel').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
 
   var grid = document.getElementById('modalChipGrid');
   grid.innerHTML = '';
-  var sel = selections[dateStr];
   ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
     var chip = document.createElement('div');
-    chip.className = 'chip' + (sel && sel.type === type ? ' selected' : '');
+    chip.className = 'chip' + (modalDraft.type === type ? ' selected' : '');
     chip.textContent = type;
-    chip.onclick = function (type) { return function () { selectModalType(type); }; }(type);
+    chip.onclick = function (type) { return function () { toggleModalType(type); }; }(type);
     grid.appendChild(chip);
   });
 
@@ -307,50 +346,90 @@ function openModal(dateStr) {
   if (!startSel.options.length) {
     fillHourOptions(startSel);
     fillHourOptions(endSel);
-    startSel.onchange = function () { if (selections[modalDateStr]) selections[modalDateStr].startTime = startSel.value; };
-    endSel.onchange = function () { if (selections[modalDateStr]) selections[modalDateStr].endTime = endSel.value; };
   }
-  if (sel && sel.type === 'カスタム') {
+  startSel.onchange = function () { modalDraft.startTime = startSel.value; updateDecideButtonState(); };
+  endSel.onchange = function () { modalDraft.endTime = endSel.value; updateDecideButtonState(); };
+
+  if (modalDraft.type === 'カスタム') {
     customBox.style.display = 'flex';
-    startSel.value = sel.startTime || '09:00';
-    endSel.value = sel.endTime || '18:00';
+    startSel.value = modalDraft.startTime || '';
+    endSel.value = modalDraft.endTime || '';
   } else {
     customBox.style.display = 'none';
   }
 
+  updateDecideButtonState();
   document.getElementById('dayModal').classList.add('show');
 }
 
-function selectModalType(type) {
-  selectType(modalDateStr, type);
-  openModal(modalDateStr); // チェック状態を反映して再描画
+function toggleModalType(type) {
+  if (modalDraft.type === type) {
+    modalDraft.type = null;
+  } else {
+    modalDraft.type = type;
+    if (type !== 'カスタム') { modalDraft.startTime = ''; modalDraft.endTime = ''; }
+  }
+  renderModal();
 }
 
-function clearModalDate() {
-  delete selections[modalDateStr];
-  buildDayList();
-  renderCalendarGrid();
+function updateDecideButtonState() {
+  var valid = !!modalDraft.type && (modalDraft.type !== 'カスタム' || (modalDraft.startTime && modalDraft.endTime));
+  document.getElementById('modalDecideBtn').disabled = !valid;
+}
+
+function decideModal() {
+  if (!modalDraft.type) return;
+  if (modalDraft.type === 'カスタム' && (!modalDraft.startTime || !modalDraft.endTime)) return;
+
+  if (modalMode === 'new') {
+    selections[modalDateStr] = { type: modalDraft.type, startTime: modalDraft.startTime, endTime: modalDraft.endTime };
+    buildDayList();
+    renderCalendarGrid();
+    closeModal();
+  } else {
+    var token = modalToken;
+    var draft = modalDraft;
+    closeModal();
+    callServer({
+      action: 'updateShift', userId: profile.userId, token: token,
+      type: draft.type, startTime: draft.startTime, endTime: draft.endTime
+    }).then(function (result) {
+      var el = document.getElementById('status');
+      el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
+      el.textContent = result.message;
+      if (result.status === 'ok') loadMyShifts();
+    });
+  }
+}
+
+function cancelModalBtn() {
   closeModal();
 }
 
 function closeModal() {
   document.getElementById('dayModal').classList.remove('show');
   modalDateStr = null;
+  modalToken = null;
+  modalDraft = null;
 }
 
 function submitAll() {
   var entries = [];
+  var incomplete = false;
   Object.keys(selections).forEach(function (dateStr) {
     var sel = selections[dateStr];
+    if (sel.type === 'カスタム' && (!sel.startTime || !sel.endTime)) { incomplete = true; return; }
     var entry = { date: dateStr, type: sel.type };
-    if (sel.type === 'カスタム') {
-      entry.startTime = sel.startTime || '09:00';
-      entry.endTime = sel.endTime || '18:00';
-    }
+    if (sel.type === 'カスタム') { entry.startTime = sel.startTime; entry.endTime = sel.endTime; }
     entries.push(entry);
   });
 
   var el = document.getElementById('status');
+  if (incomplete) {
+    el.className = 'status show error';
+    el.textContent = 'カスタムの時間が未選択の日があります。開始・終了時刻を選んでください。';
+    return;
+  }
   if (entries.length === 0) {
     el.className = 'status show error';
     el.textContent = '希望する日を1つ以上選んでください。';
@@ -389,15 +468,68 @@ function loadMyShifts() {
     el.innerHTML = '';
     result.shifts.forEach(function (s) {
       var tagColor = s.status === '確定' ? '#16A34A' : (s.status === '却下' ? '#DC2626' : '#C9822A');
-      var timeLabel = s.status === '確定' ? (s.confStart + '〜' + s.confEnd) : (s.type + ' ' + s.prefStart + '〜' + s.prefEnd);
+      var timeLabel = s.status === '確定' ? (s.confStart + '〜' + s.confEnd) : (s.type + (s.type === 'カスタム' ? (' ' + s.prefStart + '〜' + s.prefEnd) : ''));
       var tagLabel = s.status === '確定' ? '確定' : (s.status === '却下' ? '見送り' : '未確定');
+
       var row = document.createElement('div');
       row.className = 'shift-row';
-      row.innerHTML =
+      row.style.flexDirection = 'column';
+      row.style.alignItems = 'stretch';
+
+      var topLine = document.createElement('div');
+      topLine.style.display = 'flex';
+      topLine.style.justifyContent = 'space-between';
+      topLine.innerHTML =
         '<span>' + s.date + ' ' + timeLabel + '</span>' +
         '<span class="shift-tag" style="color:' + tagColor + ';">' + tagLabel + '</span>';
+      row.appendChild(topLine);
+
+      if (s.status === '未確定') {
+        var actions = document.createElement('div');
+        actions.style.marginTop = '4px';
+        actions.style.textAlign = 'right';
+
+        var editLink = document.createElement('a');
+        editLink.href = 'javascript:void(0)';
+        editLink.textContent = '編集';
+        editLink.style.fontSize = '12px';
+        editLink.style.color = '#2F6F4E';
+        editLink.style.marginRight = '14px';
+        editLink.onclick = function (s) { return function () { openModalForEdit(s); }; }(s);
+        actions.appendChild(editLink);
+
+        var cancelLink = document.createElement('a');
+        cancelLink.href = 'javascript:void(0)';
+        cancelLink.textContent = '取り消す';
+        cancelLink.style.fontSize = '12px';
+        cancelLink.style.color = '#DC2626';
+        cancelLink.onclick = function (token, linkEl) {
+          return function () {
+            if (linkEl.dataset.confirming === 'true') {
+              performCancelShift(token);
+              return;
+            }
+            linkEl.dataset.confirming = 'true';
+            linkEl.textContent = '本当に取り消す？';
+            setTimeout(function () { linkEl.dataset.confirming = 'false'; linkEl.textContent = '取り消す'; }, 4000);
+          };
+        }(s.token, cancelLink);
+        actions.appendChild(cancelLink);
+
+        row.appendChild(actions);
+      }
+
       el.appendChild(row);
     });
+  });
+}
+
+function performCancelShift(token) {
+  callServer({ action: 'cancelShift', userId: profile.userId, token: token }).then(function (result) {
+    var el = document.getElementById('status');
+    el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
+    el.textContent = result.message;
+    if (result.status === 'ok') loadMyShifts();
   });
 }
 
