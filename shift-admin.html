@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>シフト管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: linear-gradient(180deg, #EEF4EC 0%, #F4F6F8 220px);
+    color: #223327;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 28px 14px 40px; }
+  .site-title { font-size: 20px; font-weight: 700; text-align: center; margin: 0 0 4px; color: #2F5D3A; }
+  .site-subtitle { font-size: 12px; color: #6B8F73; text-align: center; letter-spacing: 0.1em; margin: 0 0 18px; }
+  .card { background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08); margin-bottom: 14px; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .summary-box { background: #FAFCF9; border: 1px solid #DCE6DC; border-radius: 12px; padding: 12px; text-align: center; }
+  .summary-label { font-size: 11px; color: #6B8F79; margin: 0 0 4px; }
+  .summary-value { font-size: 18px; font-weight: 700; color: #223327; margin: 0; }
+
+  .tabs { display: flex; border: 1px solid #DCE6DC; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; color: #5B7A62; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .tab-btn.active { background: #2F6F4E; color: #fff; font-weight: 700; }
+
+  .date-group-title { font-size: 13px; font-weight: 700; color: #5B7A62; margin: 14px 0 6px; }
+  .date-group-title:first-child { margin-top: 0; }
+  .entry-row { border: 1px solid #E2E8DE; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .entry-top { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .entry-name { font-weight: 700; }
+  .entry-sub { font-size: 12px; color: #8AA391; }
+  .status-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .status-tag.confirmed { background: #E6F4EC; color: #1F5233; }
+  .status-tag.rejected { background: #FCEBEB; color: #7C2222; }
+  .status-tag.pending { background: #FFF7E6; color: #8A5A0B; }
+
+  .decide-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+  .decide-row select { flex: 1; padding: 8px; font-size: 13px; border-radius: 8px; border: 1px solid #CBD5C9; font-family: inherit; }
+  .decide-row button { padding: 8px 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; color: #fff; }
+  .btn-confirm { background: #16A34A; }
+  .btn-reject { background: #DC2626; }
+
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-head { font-size: 11px; color: #8AA391; text-align: center; }
+  .cal-day {
+    aspect-ratio: 1; border: 1px solid #E2E8DE; border-radius: 8px; padding: 3px;
+    font-size: 11px; text-align: left; cursor: pointer; background: #fff;
+  }
+  .cal-day.has-confirmed { background: #E6F4EC; border-color: #BEE0CC; }
+  .cal-day.pending-only { background: #FFF7E6; border-color: #F5DFAE; }
+  .cal-day.selected { border: 2px solid #2F6F4E; }
+  .cal-count { font-size: 10px; font-weight: 700; margin-top: 2px; }
+  .cal-empty {}
+
+  .legend { display: flex; gap: 14px; font-size: 11px; color: #5B7A62; margin: 8px 0 0; }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .urgent-card input, .urgent-card select {
+    padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #CBD5C9; font-family: inherit;
+  }
+  .urgent-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .urgent-row select { flex: 1; }
+  .btn-urgent { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; color: #fff; background: #DC2626; font-family: inherit; cursor: pointer; }
+
+  .status { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.6; display: none; white-space: pre-line; }
+  .status.show { display: block; }
+  .status.ok { background: #E6F4EC; color: #1F5233; }
+  .status.error { background: #FCEBEB; color: #7C2222; }
+  .status.loading { background: #F1EFE8; color: #56534A; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="site-title">🌾 もぐもぐ農園</h1>
+  <p class="site-subtitle">シフト管理（管理者専用）</p>
+
+  <div id="blockedCard" class="card" style="display:none; text-align:center;">
+    <p style="font-weight:700; color:#B45309;">この画面は管理者のみ利用できます</p>
+  </div>
+
+  <div id="initStatusCard" class="card">
+    <div class="status show loading">読み込み中...しばらくお待ちください</div>
+  </div>
+
+  <div id="mainContent" style="display:none;">
+    <div class="card">
+      <div class="summary-grid">
+        <div class="summary-box">
+          <p class="summary-label">今月・確定分の概算経費</p>
+          <p class="summary-value" id="monthlyCost">-</p>
+        </div>
+        <div class="summary-box">
+          <p class="summary-label">未確定の希望</p>
+          <p class="summary-value" id="pendingCount">-</p>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
+        <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
+      </div>
+
+      <div id="listView"></div>
+      <div id="calendarView" style="display:none;">
+        <p id="calMonthLabel" style="font-size:14px; font-weight:700; margin:0 0 8px;"></p>
+        <div class="calendar-grid" id="calGrid"></div>
+        <div class="legend">
+          <span><i style="background:#E6F4EC;border:1px solid #BEE0CC;"></i>確定あり</span>
+          <span><i style="background:#FFF7E6;border:1px solid #F5DFAE;"></i>未確定のみ</span>
+        </div>
+        <div id="calDetail" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="status" id="actionStatus"></div>
+    </div>
+
+    <div class="card urgent-card">
+      <p style="font-size:14px; font-weight:700; margin:0 0 10px;">急募を送る</p>
+      <input type="date" id="urgentDate" style="width:100%; margin-bottom:8px;">
+      <div class="urgent-row">
+        <select id="urgentStart"></select>
+        <select id="urgentEnd"></select>
+      </div>
+      <button class="btn-urgent" onclick="sendUrgentCall()">全スタッフに送信</button>
+      <div class="status" id="urgentStatus"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
+var LIFF_ID = 'YOUR_SHIFT_ADMIN_LIFF_ID_HERE';
+
+var profile = null;
+var allShifts = [];
+var currentTab = 'list';
+var selectedCalDate = null;
+var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+function callServer(payload) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function (res) { return res.json(); });
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(function (_, reject) { setTimeout(function () { reject(new Error('TIMEOUT')); }, ms); })
+  ]);
+}
+
+function fillHourSelect(sel, defaultVal) {
+  sel.innerHTML = '';
+  for (var h = 6; h <= 22; h++) {
+    var opt = document.createElement('option');
+    opt.value = (h < 10 ? '0' + h : h) + ':00';
+    opt.textContent = h + '時';
+    if (opt.value === defaultVal) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
+  document.getElementById('tabCalBtn').classList.toggle('active', tab === 'calendar');
+  document.getElementById('listView').style.display = (tab === 'list') ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = (tab === 'calendar') ? 'block' : 'none';
+  if (tab === 'calendar') renderCalendar();
+}
+
+function statusTagHtml(status) {
+  if (status === '確定') return '<span class="status-tag confirmed">確定</span>';
+  if (status === '却下') return '<span class="status-tag rejected">見送り</span>';
+  return '<span class="status-tag pending">未確定</span>';
+}
+
+function buildDecideRow(shift) {
+  var wrap = document.createElement('div');
+  wrap.className = 'decide-row';
+  var startSel = document.createElement('select');
+  var endSel = document.createElement('select');
+  fillHourSelect(startSel, shift.prefStart);
+  fillHourSelect(endSel, shift.prefEnd);
+  var confirmBtn = document.createElement('button');
+  confirmBtn.className = 'btn-confirm';
+  confirmBtn.textContent = '確定';
+  confirmBtn.onclick = function () { decideShift(shift.token, 'confirm', startSel.value, endSel.value); };
+  var rejectBtn = document.createElement('button');
+  rejectBtn.className = 'btn-reject';
+  rejectBtn.textContent = '却下';
+  rejectBtn.onclick = function () { decideShift(shift.token, 'reject'); };
+  wrap.appendChild(startSel);
+  wrap.appendChild(document.createTextNode('〜'));
+  wrap.appendChild(endSel);
+  wrap.appendChild(confirmBtn);
+  wrap.appendChild(rejectBtn);
+  return wrap;
+}
+
+function buildEntryRow(shift) {
+  var row = document.createElement('div');
+  row.className = 'entry-row';
+  var top = document.createElement('div');
+  top.className = 'entry-top';
+  var timeLabel = (shift.status === '確定') ? (shift.confStart + '〜' + shift.confEnd) : (shift.type + '希望 ' + shift.prefStart + '〜' + shift.prefEnd);
+  top.innerHTML =
+    '<span><span class="entry-name">' + shift.name + '</span> <span class="entry-sub">' + timeLabel + '</span></span>';
+  top.appendChild((function () {
+    var d = document.createElement('div');
+    d.innerHTML = statusTagHtml(shift.status);
+    return d.firstChild;
+  })());
+  row.appendChild(top);
+  if (shift.status === '未確定') row.appendChild(buildDecideRow(shift));
+  return row;
+}
+
+function renderList() {
+  var container = document.getElementById('listView');
+  container.innerHTML = '';
+  if (allShifts.length === 0) {
+    container.innerHTML = '<p style="font-size:13px; color:#8AA391;">シフト希望はまだありません。</p>';
+    return;
+  }
+  var grouped = {};
+  allShifts.forEach(function (s) {
+    if (!grouped[s.date]) grouped[s.date] = [];
+    grouped[s.date].push(s);
+  });
+  Object.keys(grouped).sort().forEach(function (dateStr) {
+    var d = new Date(dateStr + 'T00:00:00');
+    var title = document.createElement('p');
+    title.className = 'date-group-title';
+    title.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
+    container.appendChild(title);
+    grouped[dateStr].forEach(function (s) { container.appendChild(buildEntryRow(s)); });
+  });
+}
+
+function renderCalendar() {
+  var now = new Date();
+  document.getElementById('calMonthLabel').textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月';
+
+  var grouped = {};
+  allShifts.forEach(function (s) {
+    if (!grouped[s.date]) grouped[s.date] = [];
+    grouped[s.date].push(s);
+  });
+
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  weekdayLabels.forEach(function (w) {
+    var h = document.createElement('div');
+    h.className = 'cal-head';
+    h.textContent = w;
+    grid.appendChild(h);
+  });
+
+  var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  for (var i = 0; i < firstDay.getDay(); i++) {
+    grid.appendChild(document.createElement('div'));
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateObj = new Date(now.getFullYear(), now.getMonth(), d);
+    var dateStr = dateObj.toISOString().split('T')[0];
+    var cell = document.createElement('div');
+    cell.className = 'cal-day';
+    var entries = grouped[dateStr] || [];
+    var hasConfirmed = entries.some(function (e) { return e.status === '確定'; });
+    var hasPending = entries.some(function (e) { return e.status === '未確定'; });
+    if (hasConfirmed) cell.classList.add('has-confirmed');
+    else if (hasPending) cell.classList.add('pending-only');
+    if (dateStr === selectedCalDate) cell.classList.add('selected');
+
+    cell.innerHTML = d + (entries.length ? '<div class="cal-count">' + entries.length + '</div>' : '');
+    cell.onclick = function (dateStr) { return function () { selectedCalDate = dateStr; renderCalendar(); }; }(dateStr);
+    grid.appendChild(cell);
+  }
+
+  var detail = document.getElementById('calDetail');
+  detail.innerHTML = '';
+  if (selectedCalDate && grouped[selectedCalDate]) {
+    var d2 = new Date(selectedCalDate + 'T00:00:00');
+    var title = document.createElement('p');
+    title.className = 'date-group-title';
+    title.textContent = (d2.getMonth() + 1) + '月' + d2.getDate() + '日(' + weekdayLabels[d2.getDay()] + ')の内訳';
+    detail.appendChild(title);
+    grouped[selectedCalDate].forEach(function (s) { detail.appendChild(buildEntryRow(s)); });
+  }
+}
+
+function decideShift(token, kind, startTime, endTime) {
+  var el = document.getElementById('actionStatus');
+  el.className = 'status show loading';
+  el.textContent = '処理中...しばらくお待ちください';
+
+  var action = (kind === 'confirm') ? 'adminConfirmShift' : 'adminRejectShift';
+  var payload = { action: action, userId: profile.userId, token: token };
+  if (kind === 'confirm') { payload.startTime = startTime; payload.endTime = endTime; }
+
+  callServer(payload).then(function (result) {
+    el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
+    el.textContent = result.message;
+    if (result.status === 'ok') loadAdminData();
+  }).catch(function () {
+    el.className = 'status show error';
+    el.textContent = '通信エラーが発生しました。もう一度お試しください。';
+  });
+}
+
+function sendUrgentCall() {
+  var date = document.getElementById('urgentDate').value;
+  var start = document.getElementById('urgentStart').value;
+  var end = document.getElementById('urgentEnd').value;
+  var el = document.getElementById('urgentStatus');
+
+  if (!date) {
+    el.className = 'status show error';
+    el.textContent = '日付を選んでください。';
+    return;
+  }
+
+  el.className = 'status show loading';
+  el.textContent = '送信中...しばらくお待ちください';
+
+  callServer({ action: 'adminSendUrgentCall', userId: profile.userId, shiftDate: date, startTime: start, endTime: end })
+    .then(function (result) {
+      el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
+      el.textContent = result.message;
+    }).catch(function () {
+      el.className = 'status show error';
+      el.textContent = '通信エラーが発生しました。もう一度お試しください。';
+    });
+}
+
+function loadAdminData() {
+  callServer({ action: 'adminListShifts', userId: profile.userId }).then(function (result) {
+    if (result.status !== 'ok') {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('blockedCard').style.display = 'block';
+      return;
+    }
+    allShifts = result.shifts;
+    document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
+    document.getElementById('pendingCount').textContent = result.pendingCount + '件';
+    renderList();
+    if (currentTab === 'calendar') renderCalendar();
+  });
+}
+
+var todayISO = new Date().toISOString().split('T')[0];
+document.getElementById('urgentDate').min = todayISO;
+fillHourSelect(document.getElementById('urgentStart'), '09:00');
+fillHourSelect(document.getElementById('urgentEnd'), '13:00');
+
+if (typeof liff === 'undefined') {
+  document.querySelector('#initStatusCard .status').className = 'status show error';
+  document.querySelector('#initStatusCard .status').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
+} else {
+  withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
+    if (!liff.isLoggedIn()) { liff.login(); return Promise.reject('LOGIN_REDIRECT'); }
+    return withTimeout(liff.getProfile(), 10000);
+  }).then(function (p) {
+    profile = p;
+    return callServer({ action: 'adminListShifts', userId: p.userId });
+  }).then(function (result) {
+    document.getElementById('initStatusCard').style.display = 'none';
+    if (result.status !== 'ok') {
+      document.getElementById('blockedCard').style.display = 'block';
+      return;
+    }
+    document.getElementById('mainContent').style.display = 'block';
+    allShifts = result.shifts;
+    document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
+    document.getElementById('pendingCount').textContent = result.pendingCount + '件';
+    renderList();
+  }).catch(function (err) {
+    if (err === 'LOGIN_REDIRECT') return;
+    var el = document.querySelector('#initStatusCard .status');
+    el.className = 'status show error';
+    el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
+  });
+}
+</script>
+</body>
+</html>

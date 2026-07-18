@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>シフト希望提出</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: linear-gradient(180deg, #EEF4EC 0%, #F4F6F8 220px);
+    color: #223327;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 32px 16px 40px; text-align: center; }
+  .site-title { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; margin: 0 0 4px; color: #2F5D3A; }
+  .site-subtitle { font-size: 12px; color: #6B8F73; letter-spacing: 0.15em; margin: 0 0 20px; }
+  .card { background: #fff; border-radius: 20px; padding: 24px 18px; box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08); text-align: left; }
+  .card-title { font-size: 15px; font-weight: 700; color: #2F5D3A; margin: 0 0 4px; text-align: center; }
+  .card-sub { font-size: 12px; color: #6B8F79; margin: 0 0 16px; text-align: center; }
+  .greeting { font-size: 13px; color: #5B7A62; text-align: center; margin-bottom: 14px; }
+  .day-row { border: 1px solid #E2E8DE; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .day-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; color: #223327; }
+  .day-label.weekend { color: #C9822A; }
+  .chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .chip {
+    padding: 9px 4px; font-size: 12px; text-align: center; border-radius: 8px;
+    border: 1px solid #CBD5C9; background: #fff; color: #45564A; cursor: pointer; font-family: inherit;
+  }
+  .chip.selected { background: #16A34A; border-color: #16A34A; color: #fff; font-weight: 700; }
+  .custom-time { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .custom-time select { flex: 1; padding: 8px; font-size: 13px; border-radius: 8px; border: 1px solid #CBD5C9; font-family: inherit; }
+  .custom-time span { font-size: 12px; color: #6B8F79; }
+  .btn {
+    display: block; width: 100%; padding: 16px; margin-top: 16px; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 700; font-family: inherit; color: #fff; background: #2F6F4E; cursor: pointer;
+  }
+  .btn:disabled { opacity: 0.4; }
+  .status { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; display: none; white-space: pre-line; }
+  .status.show { display: block; }
+  .status.ok { background: #E6F4EC; color: #1F5233; }
+  .status.error { background: #FCEBEB; color: #7C2222; }
+  .status.loading { background: #F1EFE8; color: #56534A; }
+  .my-shifts { margin-top: 20px; border-top: 1px dashed #E2E8DE; padding-top: 14px; }
+  .my-shifts-title { font-size: 13px; font-weight: 700; color: #5B7A62; margin: 0 0 8px; }
+  .shift-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #EDF1EA; }
+  .shift-tag { font-weight: 700; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="site-title">🌾 もぐもぐ農園</h1>
+  <p class="site-subtitle">シフト希望提出</p>
+
+  <div class="card">
+    <div id="blockedMessage" style="display:none; text-align:center; padding: 20px 0;">
+      <p style="font-weight:700; color:#B45309;">先に打刻ページで登録してください</p>
+      <p style="font-size:13px; color:#5B7A62;">「①打刻システムへ」のページを開き、お名前を登録してから、このページをもう一度開いてください。</p>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+      <p class="card-title">シフト希望を提出</p>
+      <p class="card-sub">今日から1ヶ月先まで、希望する日を選べます</p>
+      <div class="greeting" id="greeting"></div>
+
+      <div id="dayList"></div>
+
+      <button class="btn" id="submitBtn" onclick="submitAll()">この内容で提出する</button>
+      <div class="status" id="status"></div>
+
+      <div class="my-shifts">
+        <p class="my-shifts-title">提出済みのシフト希望</p>
+        <div id="myShiftsList" style="font-size:13px; color:#5B7A62;">読み込み中...</div>
+      </div>
+    </div>
+
+    <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
+  </div>
+</div>
+
+<script>
+var GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
+var LIFF_ID = 'YOUR_SHIFT_LIFF_ID_HERE';
+
+var profile = null;
+var selections = {}; // { '2026-07-19': { type: '終日', startTime: '09:00', endTime: '18:00' } }
+
+var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+function toISO(d) { return d.toISOString().split('T')[0]; }
+
+function buildDayList() {
+  var container = document.getElementById('dayList');
+  container.innerHTML = '';
+  var today = new Date();
+  for (var i = 0; i < 30; i++) {
+    var d = new Date();
+    d.setDate(today.getDate() + i);
+    var dateStr = toISO(d);
+    var wd = d.getDay();
+    var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[wd] + ')';
+
+    var row = document.createElement('div');
+    row.className = 'day-row';
+
+    var labelEl = document.createElement('p');
+    labelEl.className = 'day-label' + ((wd === 0 || wd === 6) ? ' weekend' : '');
+    labelEl.textContent = label;
+    row.appendChild(labelEl);
+
+    var chipGrid = document.createElement('div');
+    chipGrid.className = 'chip-grid';
+    ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
+      var chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = type;
+      chip.onclick = function (dateStr, type, chip) {
+        return function () { toggleChip(dateStr, type, chip); };
+      }(dateStr, type, chip);
+      chipGrid.appendChild(chip);
+    });
+    row.appendChild(chipGrid);
+
+    var customBox = document.createElement('div');
+    customBox.className = 'custom-time';
+    customBox.style.display = 'none';
+    customBox.id = 'custom-' + dateStr;
+    customBox.innerHTML =
+      '<select id="start-' + dateStr + '"></select><span>〜</span><select id="end-' + dateStr + '"></select>';
+    row.appendChild(customBox);
+
+    container.appendChild(row);
+  }
+
+  // カスタム用の時間プルダウンを用意（6時〜22時、1時間単位）
+  document.querySelectorAll('.custom-time select').forEach(function (sel) {
+    for (var h = 6; h <= 22; h++) {
+      var opt = document.createElement('option');
+      opt.value = (h < 10 ? '0' + h : h) + ':00';
+      opt.textContent = h + '時';
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function toggleChip(dateStr, type, chipEl) {
+  var current = selections[dateStr];
+  var customBox = document.getElementById('custom-' + dateStr);
+  var allChips = chipEl.parentElement.querySelectorAll('.chip');
+
+  if (current && current.type === type) {
+    // 同じものをもう一度押したら選択解除
+    delete selections[dateStr];
+    allChips.forEach(function (c) { c.classList.remove('selected'); });
+    customBox.style.display = 'none';
+    return;
+  }
+
+  allChips.forEach(function (c) { c.classList.remove('selected'); });
+  chipEl.classList.add('selected');
+  selections[dateStr] = { type: type };
+  customBox.style.display = (type === 'カスタム') ? 'flex' : 'none';
+}
+
+function submitAll() {
+  var entries = [];
+  Object.keys(selections).forEach(function (dateStr) {
+    var sel = selections[dateStr];
+    var entry = { date: dateStr, type: sel.type };
+    if (sel.type === 'カスタム') {
+      entry.startTime = document.getElementById('start-' + dateStr).value;
+      entry.endTime = document.getElementById('end-' + dateStr).value;
+    }
+    entries.push(entry);
+  });
+
+  var el = document.getElementById('status');
+  if (entries.length === 0) {
+    el.className = 'status show error';
+    el.textContent = '希望する日を1つ以上選んでください。';
+    return;
+  }
+
+  el.className = 'status show loading';
+  el.textContent = '送信中...しばらくお待ちください';
+  document.getElementById('submitBtn').disabled = true;
+
+  callServer({ action: 'submitShiftBatch', userId: profile.userId, displayName: profile.displayName, entries: entries })
+    .then(function (result) {
+      el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
+      el.textContent = result.message;
+      document.getElementById('submitBtn').disabled = false;
+      if (result.status === 'ok') {
+        selections = {};
+        buildDayList();
+        loadMyShifts();
+      }
+    }).catch(function () {
+      el.className = 'status show error';
+      el.textContent = '通信エラーが発生しました。もう一度お試しください。';
+      document.getElementById('submitBtn').disabled = false;
+    });
+}
+
+function loadMyShifts() {
+  callServer({ action: 'listMyShifts', userId: profile.userId }).then(function (result) {
+    var el = document.getElementById('myShiftsList');
+    if (result.status !== 'ok' || !result.shifts || result.shifts.length === 0) {
+      el.textContent = '提出済みのシフト希望はまだありません。';
+      return;
+    }
+    el.innerHTML = '';
+    result.shifts.forEach(function (s) {
+      var tagColor = s.status === '確定' ? '#16A34A' : (s.status === '却下' ? '#DC2626' : '#C9822A');
+      var timeLabel = s.status === '確定' ? (s.confStart + '〜' + s.confEnd) : (s.type + ' ' + s.prefStart + '〜' + s.prefEnd);
+      var tagLabel = s.status === '確定' ? '確定' : (s.status === '却下' ? '見送り' : '未確定');
+      var row = document.createElement('div');
+      row.className = 'shift-row';
+      row.innerHTML =
+        '<span>' + s.date + ' ' + timeLabel + '</span>' +
+        '<span class="shift-tag" style="color:' + tagColor + ';">' + tagLabel + '</span>';
+      el.appendChild(row);
+    });
+  });
+}
+
+function callServer(payload) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(function (res) { return res.json(); });
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(function (_, reject) { setTimeout(function () { reject(new Error('TIMEOUT')); }, ms); })
+  ]);
+}
+
+buildDayList();
+
+if (typeof liff === 'undefined') {
+  document.getElementById('initStatus').className = 'status show error';
+  document.getElementById('initStatus').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
+} else {
+  withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
+    if (!liff.isLoggedIn()) { liff.login(); return Promise.reject('LOGIN_REDIRECT'); }
+    return withTimeout(liff.getProfile(), 10000);
+  }).then(function (p) {
+    profile = p;
+    return callServer({ action: 'init', userId: p.userId });
+  }).then(function (result) {
+    document.getElementById('initStatus').style.display = 'none';
+    if (result.status === 'ok') {
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('greeting').textContent = result.name + ' さん';
+      loadMyShifts();
+    } else {
+      document.getElementById('blockedMessage').style.display = 'block';
+    }
+  }).catch(function (err) {
+    if (err === 'LOGIN_REDIRECT') return;
+    var el = document.getElementById('initStatus');
+    el.className = 'status show error';
+    el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
+  });
+}
+</script>
+</body>
+</html>
