@@ -47,17 +47,18 @@
   .btn-confirm { background: #16A34A; }
   .btn-reject { background: #DC2626; }
 
-  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 46px; gap: 4px; }
   .cal-head { font-size: 11px; color: #8AA391; text-align: center; }
   .cal-day {
-    aspect-ratio: 1; border: 1px solid #E2E8DE; border-radius: 8px; padding: 3px;
+    border: 1px solid #E2E8DE; border-radius: 8px; padding: 3px;
     font-size: 11px; text-align: left; cursor: pointer; background: #fff;
+    overflow: hidden;
   }
   .cal-day.has-confirmed { background: #E6F4EC; border-color: #BEE0CC; }
   .cal-day.pending-only { background: #FFF7E6; border-color: #F5DFAE; }
   .cal-day-blank { aspect-ratio: 1; }
   .cal-day.selected { border: 2px solid #2F6F4E; }
-  .cal-count { font-size: 10px; font-weight: 700; margin-top: 2px; }
+  .cal-count { font-size: 10px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cal-empty {}
 
   .legend { display: flex; gap: 14px; font-size: 11px; color: #5B7A62; margin: 8px 0 0; }
