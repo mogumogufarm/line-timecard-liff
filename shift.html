@@ -49,6 +49,37 @@
   .my-shifts-title { font-size: 13px; font-weight: 700; color: #5B7A62; margin: 0 0 8px; }
   .shift-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #EDF1EA; }
   .shift-tag { font-weight: 700; font-size: 12px; }
+
+  .tabs { display: flex; border: 1px solid #DCE6DC; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; color: #5B7A62; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .tab-btn.active { background: #2F6F4E; color: #fff; font-weight: 700; }
+
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-nav button { border: none; background: #F1F5F0; color: #2F5D3A; border-radius: 8px; padding: 6px 12px; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .cal-nav button:disabled { opacity: 0.3; cursor: default; }
+  .cal-month-label { font-size: 14px; font-weight: 700; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-head { font-size: 11px; color: #8AA391; text-align: center; }
+  .cal-day {
+    aspect-ratio: 1; border: 1px solid #E2E8DE; border-radius: 8px; padding: 3px;
+    font-size: 11px; text-align: left; background: #fff; color: #223327;
+  }
+  .cal-day.enabled { cursor: pointer; }
+  .cal-day.disabled { color: #C7D0C9; background: #F7F9F6; }
+  .cal-day.chosen { background: #E6F4EC; border-color: #16A34A; }
+  .cal-type-label { font-size: 9px; font-weight: 700; color: #16A34A; margin-top: 2px; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20, 30, 22, 0.5);
+    display: none; align-items: center; justify-content: center; padding: 24px; z-index: 1000;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 18px; padding: 22px 20px; max-width: 320px; width: 100%; box-shadow: 0 10px 34px rgba(0,0,0,0.22); text-align: center; }
+  .modal-box p.modal-title { font-size: 15px; font-weight: 700; margin: 0 0 14px; color: #223327; }
+  .modal-buttons-row { display: flex; gap: 8px; margin-top: 10px; }
+  .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .modal-btn.clear { background: #F1F5F0; color: #5B7A62; }
+  .modal-btn.close { background: #E5E7EB; color: #374151; }
 </style>
 </head>
 <body>
@@ -67,7 +98,23 @@
       <p class="card-sub">今日から1ヶ月先まで、希望する日を選べます</p>
       <div class="greeting" id="greeting"></div>
 
-      <div id="dayList"></div>
+      <div class="tabs">
+        <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
+        <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
+      </div>
+
+      <div id="listView">
+        <div id="dayList"></div>
+      </div>
+
+      <div id="calendarView" style="display:none;">
+        <div class="cal-nav">
+          <button id="calPrevBtn" onclick="changeCalMonth(-1)">＜前の月</button>
+          <span class="cal-month-label" id="calMonthLabel"></span>
+          <button id="calNextBtn" onclick="changeCalMonth(1)">次の月＞</button>
+        </div>
+        <div class="calendar-grid" id="calGrid"></div>
+      </div>
 
       <button class="btn" id="submitBtn" onclick="submitAll()">この内容で提出する</button>
       <div class="status" id="status"></div>
@@ -82,16 +129,39 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="dayModal">
+  <div class="modal-box">
+    <p class="modal-title" id="modalDateLabel"></p>
+    <div class="chip-grid" id="modalChipGrid"></div>
+    <div class="custom-time" id="modalCustomTime" style="display:none; justify-content:center;">
+      <select id="modalStart"></select><span>〜</span><select id="modalEnd"></select>
+    </div>
+    <div class="modal-buttons-row">
+      <button class="modal-btn clear" onclick="clearModalDate()">選択を解除</button>
+      <button class="modal-btn close" onclick="closeModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0rdTpNT8b5z53fqmBLt5PXPZTYBnN1FnuZR4Ln2r-ELm4g/exec';
-var LIFF_ID = '2010745560-7uisGwZP';
+var GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
+var LIFF_ID = 'YOUR_SHIFT_LIFF_ID_HERE';
 
 var profile = null;
-var selections = {}; // { '2026-07-19': { type: '終日', startTime: '09:00', endTime: '18:00' } }
-
+var selections = {}; // { '2026-07-19': { type: '終日' } } または { type: 'カスタム', startTime: '09:00', endTime: '18:00' }
+var calendarMonthOffset = 0; // 0=今月, 1=来月, 2=再来月（最大30日先までなので3ヶ月に収まる）
+var modalDateStr = null;
 var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
 
 function toISO(d) { return d.toISOString().split('T')[0]; }
+
+function switchTab(tab) {
+  document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
+  document.getElementById('tabCalBtn').classList.toggle('active', tab === 'calendar');
+  document.getElementById('listView').style.display = (tab === 'list') ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = (tab === 'calendar') ? 'block' : 'none';
+  if (tab === 'calendar') renderCalendarGrid();
+}
 
 function buildDayList() {
   var container = document.getElementById('dayList');
@@ -103,6 +173,7 @@ function buildDayList() {
     var dateStr = toISO(d);
     var wd = d.getDay();
     var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[wd] + ')';
+    var sel = selections[dateStr];
 
     var row = document.createElement('div');
     row.className = 'day-row';
@@ -116,54 +187,155 @@ function buildDayList() {
     chipGrid.className = 'chip-grid';
     ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
       var chip = document.createElement('div');
-      chip.className = 'chip';
+      chip.className = 'chip' + (sel && sel.type === type ? ' selected' : '');
       chip.textContent = type;
-      chip.onclick = function (dateStr, type, chip) {
-        return function () { toggleChip(dateStr, type, chip); };
-      }(dateStr, type, chip);
+      chip.onclick = function (dateStr, type) { return function () { selectType(dateStr, type); }; }(dateStr, type);
       chipGrid.appendChild(chip);
     });
     row.appendChild(chipGrid);
 
     var customBox = document.createElement('div');
     customBox.className = 'custom-time';
-    customBox.style.display = 'none';
+    customBox.style.display = (sel && sel.type === 'カスタム') ? 'flex' : 'none';
     customBox.id = 'custom-' + dateStr;
-    customBox.innerHTML =
-      '<select id="start-' + dateStr + '"></select><span>〜</span><select id="end-' + dateStr + '"></select>';
+    var startSel = document.createElement('select');
+    var endSel = document.createElement('select');
+    fillHourOptions(startSel);
+    fillHourOptions(endSel);
+    startSel.value = (sel && sel.startTime) || '09:00';
+    endSel.value = (sel && sel.endTime) || '18:00';
+    startSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].startTime = sel.value; }; }(dateStr, startSel);
+    endSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].endTime = sel.value; }; }(dateStr, endSel);
+    customBox.appendChild(startSel);
+    var tilde = document.createElement('span');
+    tilde.textContent = '〜';
+    customBox.appendChild(tilde);
+    customBox.appendChild(endSel);
     row.appendChild(customBox);
 
     container.appendChild(row);
   }
-
-  // カスタム用の時間プルダウンを用意（6時〜22時、1時間単位）
-  document.querySelectorAll('.custom-time select').forEach(function (sel) {
-    for (var h = 6; h <= 22; h++) {
-      var opt = document.createElement('option');
-      opt.value = (h < 10 ? '0' + h : h) + ':00';
-      opt.textContent = h + '時';
-      sel.appendChild(opt);
-    }
-  });
 }
 
-function toggleChip(dateStr, type, chipEl) {
-  var current = selections[dateStr];
-  var customBox = document.getElementById('custom-' + dateStr);
-  var allChips = chipEl.parentElement.querySelectorAll('.chip');
+function fillHourOptions(sel) {
+  for (var h = 6; h <= 22; h++) {
+    var opt = document.createElement('option');
+    opt.value = (h < 10 ? '0' + h : h) + ':00';
+    opt.textContent = h + '時';
+    sel.appendChild(opt);
+  }
+}
 
+// 日付に対して区分（午前/午後/終日/カスタム）を選択・解除する。リスト・モーダル共通で使用
+function selectType(dateStr, type) {
+  var current = selections[dateStr];
   if (current && current.type === type) {
-    // 同じものをもう一度押したら選択解除
     delete selections[dateStr];
-    allChips.forEach(function (c) { c.classList.remove('selected'); });
+  } else if (type === 'カスタム') {
+    var prev = (current && current.type === 'カスタム') ? current : null;
+    selections[dateStr] = { type: 'カスタム', startTime: (prev && prev.startTime) || '09:00', endTime: (prev && prev.endTime) || '18:00' };
+  } else {
+    selections[dateStr] = { type: type };
+  }
+  buildDayList();
+  renderCalendarGrid();
+}
+
+function changeCalMonth(delta) {
+  calendarMonthOffset = Math.max(0, Math.min(2, calendarMonthOffset + delta));
+  renderCalendarGrid();
+}
+
+function renderCalendarGrid() {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var maxDate = new Date(today);
+  maxDate.setDate(maxDate.getDate() + 30);
+
+  var viewMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
+  document.getElementById('calMonthLabel').textContent = viewMonth.getFullYear() + '年' + (viewMonth.getMonth() + 1) + '月';
+  document.getElementById('calPrevBtn').disabled = (calendarMonthOffset <= 0);
+  document.getElementById('calNextBtn').disabled = (calendarMonthOffset >= 2);
+
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  weekdayLabels.forEach(function (w) {
+    var h = document.createElement('div');
+    h.className = 'cal-head';
+    h.textContent = w;
+    grid.appendChild(h);
+  });
+
+  var firstDay = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
+  var daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
+  for (var i = 0; i < firstDay.getDay(); i++) grid.appendChild(document.createElement('div'));
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateObj = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d);
+    var dateStr = toISO(dateObj);
+    var inRange = (dateObj >= today && dateObj <= maxDate);
+    var sel = selections[dateStr];
+
+    var cell = document.createElement('div');
+    cell.className = 'cal-day ' + (inRange ? 'enabled' : 'disabled') + (inRange && sel ? ' chosen' : '');
+    cell.innerHTML = d + ((inRange && sel) ? '<div class="cal-type-label">' + sel.type + '</div>' : '');
+    if (inRange) cell.onclick = function (dateStr) { return function () { openModal(dateStr); }; }(dateStr);
+
+    grid.appendChild(cell);
+  }
+}
+
+function openModal(dateStr) {
+  modalDateStr = dateStr;
+  var d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('modalDateLabel').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
+
+  var grid = document.getElementById('modalChipGrid');
+  grid.innerHTML = '';
+  var sel = selections[dateStr];
+  ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
+    var chip = document.createElement('div');
+    chip.className = 'chip' + (sel && sel.type === type ? ' selected' : '');
+    chip.textContent = type;
+    chip.onclick = function (type) { return function () { selectModalType(type); }; }(type);
+    grid.appendChild(chip);
+  });
+
+  var customBox = document.getElementById('modalCustomTime');
+  var startSel = document.getElementById('modalStart');
+  var endSel = document.getElementById('modalEnd');
+  if (!startSel.options.length) {
+    fillHourOptions(startSel);
+    fillHourOptions(endSel);
+    startSel.onchange = function () { if (selections[modalDateStr]) selections[modalDateStr].startTime = startSel.value; };
+    endSel.onchange = function () { if (selections[modalDateStr]) selections[modalDateStr].endTime = endSel.value; };
+  }
+  if (sel && sel.type === 'カスタム') {
+    customBox.style.display = 'flex';
+    startSel.value = sel.startTime || '09:00';
+    endSel.value = sel.endTime || '18:00';
+  } else {
     customBox.style.display = 'none';
-    return;
   }
 
-  allChips.forEach(function (c) { c.classList.remove('selected'); });
-  chipEl.classList.add('selected');
-  selections[dateStr] = { type: type };
-  customBox.style.display = (type === 'カスタム') ? 'flex' : 'none';
+  document.getElementById('dayModal').classList.add('show');
+}
+
+function selectModalType(type) {
+  selectType(modalDateStr, type);
+  openModal(modalDateStr); // チェック状態を反映して再描画
+}
+
+function clearModalDate() {
+  delete selections[modalDateStr];
+  buildDayList();
+  renderCalendarGrid();
+  closeModal();
+}
+
+function closeModal() {
+  document.getElementById('dayModal').classList.remove('show');
+  modalDateStr = null;
 }
 
 function submitAll() {
@@ -172,8 +344,8 @@ function submitAll() {
     var sel = selections[dateStr];
     var entry = { date: dateStr, type: sel.type };
     if (sel.type === 'カスタム') {
-      entry.startTime = document.getElementById('start-' + dateStr).value;
-      entry.endTime = document.getElementById('end-' + dateStr).value;
+      entry.startTime = sel.startTime || '09:00';
+      entry.endTime = sel.endTime || '18:00';
     }
     entries.push(entry);
   });
@@ -197,6 +369,7 @@ function submitAll() {
       if (result.status === 'ok') {
         selections = {};
         buildDayList();
+        renderCalendarGrid();
         loadMyShifts();
       }
     }).catch(function () {
