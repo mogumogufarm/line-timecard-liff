@@ -40,7 +40,22 @@
     font-size: 16px; font-weight: 700; font-family: inherit; color: #fff; background: #2F6F4E; cursor: pointer;
   }
   .btn:disabled { opacity: 0.4; }
-  .status { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.6; display: none; white-space: pre-line; }
+  .status {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 448px;
+    z-index: 2000;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    display: none;
+    white-space: pre-line;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  }
   .status.show { display: block; }
   .status.ok { background: #E6F4EC; color: #1F5233; }
   .status.error { background: #FCEBEB; color: #7C2222; }
@@ -197,6 +212,17 @@ var modalDateStr = null;
 var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
 
 function toISO(d) { return d.toISOString().split('T')[0]; }
+
+var statusHideTimer = null;
+function setPageStatus(type, text) {
+  var el = document.getElementById('status');
+  clearTimeout(statusHideTimer);
+  el.className = 'status show ' + type;
+  el.textContent = text;
+  if (type !== 'loading') {
+    statusHideTimer = setTimeout(function () { el.classList.remove('show'); }, type === 'error' ? 4500 : 2500);
+  }
+}
 
 function switchTab(tab) {
   document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
@@ -483,9 +509,7 @@ function decideModal() {
       action: 'updateShift', userId: profile.userId, token: token,
       type: draft.type, startTime: draft.startTime, endTime: draft.endTime
     }).then(function (result) {
-      var el = document.getElementById('status');
-      el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
-      el.textContent = result.message;
+      setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
       if (result.status === 'ok') loadMyShifts();
     });
   }
@@ -536,26 +560,21 @@ function submitAll() {
     entries.push(entry);
   });
 
-  var el = document.getElementById('status');
   if (incomplete) {
-    el.className = 'status show error';
-    el.textContent = 'カスタムの時間が未選択の日があります。開始・終了時刻を選んでください。';
+    setPageStatus('error', 'カスタムの時間が未選択の日があります。開始・終了時刻を選んでください。');
     return;
   }
   if (entries.length === 0) {
-    el.className = 'status show error';
-    el.textContent = '希望する日を1つ以上選んでください。';
+    setPageStatus('error', '希望する日を1つ以上選んでください。');
     return;
   }
 
-  el.className = 'status show loading';
-  el.textContent = '送信中...しばらくお待ちください';
+  setPageStatus('loading', '送信中...しばらくお待ちください');
   document.getElementById('submitBtn').disabled = true;
 
   callServer({ action: 'submitShiftBatch', userId: profile.userId, displayName: profile.displayName, entries: entries })
     .then(function (result) {
-      el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
-      el.textContent = result.message;
+      setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
       document.getElementById('submitBtn').disabled = false;
       if (result.status === 'ok') {
         selections = {};
@@ -564,8 +583,7 @@ function submitAll() {
         loadMyShifts();
       }
     }).catch(function () {
-      el.className = 'status show error';
-      el.textContent = '通信エラーが発生しました。もう一度お試しください。';
+      setPageStatus('error', '通信エラーが発生しました。もう一度お試しください。');
       document.getElementById('submitBtn').disabled = false;
     });
 }
@@ -605,10 +623,9 @@ function loadMyShifts() {
 }
 
 function performCancelShift(token) {
+  setPageStatus('loading', '取り消し中...しばらくお待ちください');
   callServer({ action: 'cancelShift', userId: profile.userId, token: token }).then(function (result) {
-    var el = document.getElementById('status');
-    el.className = 'status show ' + (result.status === 'ok' ? 'ok' : 'error');
-    el.textContent = result.message;
+    setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
     if (result.status === 'ok') loadMyShifts();
   });
 }
