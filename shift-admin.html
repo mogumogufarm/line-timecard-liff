@@ -55,6 +55,7 @@
   }
   .cal-day.has-confirmed { background: #E6F4EC; border-color: #BEE0CC; }
   .cal-day.pending-only { background: #FFF7E6; border-color: #F5DFAE; }
+  .cal-day-blank { aspect-ratio: 1; }
   .cal-day.selected { border: 2px solid #2F6F4E; }
   .cal-count { font-size: 10px; font-weight: 700; margin-top: 2px; }
   .cal-empty {}
@@ -285,7 +286,9 @@ function renderCalendar() {
   var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
   var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   for (var i = 0; i < firstDay.getDay(); i++) {
-    grid.appendChild(document.createElement('div'));
+    var blank = document.createElement('div');
+    blank.className = 'cal-day-blank';
+    grid.appendChild(blank);
   }
   for (var d = 1; d <= daysInMonth; d++) {
     var dateObj = new Date(now.getFullYear(), now.getMonth(), d);
