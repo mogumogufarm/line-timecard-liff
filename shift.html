@@ -121,6 +121,7 @@
   .cal-day.cal-status-confirmed .cal-type-label { color: #16A34A; }
   .cal-day.cal-status-rejected { background: #FCEBEB; border-color: #F3C9C9; color: #B9A6A6; }
   .cal-day.cal-status-rejected .cal-type-label { color: #C97C7C; }
+  .cal-day-blank { aspect-ratio: 1; }
 
   .legend-row { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #5B7A62; margin: 0 0 12px; }
   .legend-row .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
@@ -447,7 +448,11 @@ function renderCalendarGrid() {
 
   var firstDay = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
   var daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
-  for (var i = 0; i < firstDay.getDay(); i++) grid.appendChild(document.createElement('div'));
+  for (var i = 0; i < firstDay.getDay(); i++) {
+    var blank = document.createElement('div');
+    blank.className = 'cal-day-blank';
+    grid.appendChild(blank);
+  }
 
   for (var d = 1; d <= daysInMonth; d++) {
     var dateObj = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d);
@@ -700,13 +705,16 @@ if (typeof liff === 'undefined') {
     return withTimeout(liff.getProfile(), 10000);
   }).then(function (p) {
     profile = p;
-    return callServer({ action: 'init', userId: p.userId });
+    return callServer({ action: 'shiftInit', userId: p.userId });
   }).then(function (result) {
     document.getElementById('initStatus').style.display = 'none';
     if (result.status === 'ok') {
       document.getElementById('mainContent').style.display = 'block';
       document.getElementById('greeting').textContent = result.name + ' さん';
-      loadMyShifts();
+      myShiftsByDate = {};
+      (result.shifts || []).forEach(function (s) { myShiftsByDate[s.date] = s; });
+      buildDayList();
+      renderCalendarGrid();
     } else {
       document.getElementById('blockedMessage').style.display = 'block';
     }
