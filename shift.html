@@ -51,6 +51,8 @@
     margin-top: 0;
     box-shadow: 0 6px 18px rgba(47, 111, 78, 0.35);
   }
+  #submitBtn.has-pending { background: #D97706; box-shadow: 0 6px 18px rgba(217, 119, 6, 0.4); }
+  #submitBtn.no-pending { background: #9CA3AF; box-shadow: none; }
   .status {
     position: fixed;
     bottom: 84px;
@@ -94,10 +96,6 @@
     0% { margin-left: -35%; }
     100% { margin-left: 100%; }
   }
-  .my-shifts { margin-top: 20px; border-top: 1px dashed #E2E8DE; padding-top: 14px; }
-  .my-shifts-title { font-size: 13px; font-weight: 700; color: #5B7A62; margin: 0 0 8px; }
-  .shift-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #EDF1EA; }
-  .shift-tag { font-weight: 700; font-size: 12px; }
 
   .tabs { display: flex; border: 1px solid #DCE6DC; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
   .tab-btn { flex: 1; padding: 10px; border: none; background: #fff; color: #5B7A62; font-family: inherit; font-size: 14px; cursor: pointer; }
@@ -126,6 +124,11 @@
 
   .legend-row { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #5B7A62; margin: 0 0 12px; }
   .legend-row .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
+  .pending-badge {
+    background: #FFF3D6; color: #92600A; border: 1px solid #F5D999;
+    border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 700;
+    text-align: center; margin-bottom: 14px;
+  }
   .dot-empty { background: #fff; border: 1px solid #CBD5C9; }
   .dot-pending { background: #FFF7E6; border: 1px solid #F5DFAE; }
   .dot-confirmed { background: #E6F4EC; border: 1px solid #BEE0CC; }
@@ -168,6 +171,8 @@
       <p class="card-sub">今日から1ヶ月先まで、希望する日を選べます</p>
       <div class="greeting" id="greeting"></div>
 
+      <div class="pending-badge" id="pendingBadge" style="display:none;"></div>
+
       <div class="tabs">
         <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
         <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
@@ -179,6 +184,7 @@
         <span><i class="dot dot-confirmed"></i>確定</span>
         <span><i class="dot dot-rejected"></i>見送り</span>
       </div>
+      <p style="font-size:11px; color:#8AA391; margin:0 0 12px;">グレーの日は提出済みです。タップで編集・取り消しができます</p>
 
       <div id="listView">
         <div id="dayList"></div>
@@ -195,12 +201,6 @@
 
       <button class="btn" id="submitBtn" onclick="submitAll()">この内容で提出する</button>
       <div class="status" id="status"></div>
-
-      <div class="my-shifts">
-        <p class="my-shifts-title">提出済みのシフト希望</p>
-        <p style="font-size:11px; color:#8AA391; margin:0 0 8px;">変更・取り消しは、上のリスト／カレンダーで該当日をタップしてください</p>
-        <div id="myShiftsList" style="font-size:13px; color:#5B7A62;">読み込み中...</div>
-      </div>
     </div>
 
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
@@ -295,6 +295,25 @@ function submittedStatusLabel(s) {
   return '未確定（タップで編集）';
 }
 
+function updatePendingUI() {
+  var count = Object.keys(selections).length;
+  var btn = document.getElementById('submitBtn');
+  var badge = document.getElementById('pendingBadge');
+
+  if (count > 0) {
+    btn.textContent = 'この内容で提出する（' + count + '件）';
+    btn.classList.add('has-pending');
+    btn.classList.remove('no-pending');
+    badge.style.display = 'block';
+    badge.textContent = '📝 ' + count + '件、まだ提出していません';
+  } else {
+    btn.textContent = 'この内容で提出する';
+    btn.classList.remove('has-pending');
+    btn.classList.add('no-pending');
+    badge.style.display = 'none';
+  }
+}
+
 function buildDayList() {
   var container = document.getElementById('dayList');
   container.innerHTML = '';
@@ -361,6 +380,8 @@ function buildDayList() {
 
     container.appendChild(row);
   }
+
+  updatePendingUI();
 }
 
 // 先頭に「-」（未選択）を含む時刻プルダウンを作る（6時〜22時、1時間単位）
@@ -636,33 +657,10 @@ function submitAll() {
 
 function loadMyShifts() {
   callServer({ action: 'listMyShifts', userId: profile.userId }).then(function (result) {
-    var el = document.getElementById('myShiftsList');
     myShiftsByDate = {};
-
-    if (result.status !== 'ok' || !result.shifts || result.shifts.length === 0) {
-      el.textContent = '提出済みのシフト希望はまだありません。';
-      buildDayList();
-      renderCalendarGrid();
-      return;
+    if (result.status === 'ok' && result.shifts) {
+      result.shifts.forEach(function (s) { myShiftsByDate[s.date] = s; });
     }
-
-    result.shifts.forEach(function (s) { myShiftsByDate[s.date] = s; });
-
-    el.innerHTML = '';
-    result.shifts.forEach(function (s) {
-      var tagColor = s.status === '確定' ? '#16A34A' : (s.status === '却下' ? '#DC2626' : '#C9822A');
-      var timeLabel = s.status === '確定' ? (s.confStart + '〜' + s.confEnd) : (s.type + (s.type === 'カスタム' ? (' ' + s.prefStart + '〜' + s.prefEnd) : ''));
-      var tagLabel = s.status === '確定' ? '確定' : (s.status === '却下' ? '見送り' : '未確定');
-
-      var row = document.createElement('div');
-      row.className = 'shift-row';
-      row.innerHTML =
-        '<span>' + s.date + ' ' + timeLabel + '</span>' +
-        '<span class="shift-tag" style="color:' + tagColor + ';">' + tagLabel + '</span>';
-
-      el.appendChild(row);
-    });
-
     buildDayList();
     renderCalendarGrid();
   });
