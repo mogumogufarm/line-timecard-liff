@@ -66,6 +66,17 @@
   .cal-empty {}
 
   .legend { display: flex; gap: 14px; font-size: 11px; color: #5B7A62; margin: 8px 0 0; }
+  .grid-table { border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+  .grid-table th, .grid-table td { border: 1px solid #E2E8DE; padding: 6px 8px; text-align: center; }
+  .grid-table th { background: #2F6F4E; color: #fff; font-weight: 700; }
+  .grid-table td.name-cell { text-align: left; font-weight: 700; background: #FAFCF9; position: sticky; left: 0; }
+  .grid-table th.name-head { position: sticky; left: 0; z-index: 2; }
+  .grid-table td.weekend-sat { background: #EAF1FA; }
+  .grid-table td.weekend-sun { background: #FDEEEE; }
+  .grid-table td.shift-confirmed { background: #E6F4EC; color: #16653F; font-weight: 700; }
+  .grid-table td.shift-pending { background: #FFF7E6; color: #8A5A0B; }
+  .grid-table td.shift-off { color: #C7D0C9; }
+  .grid-table tr.total-row td { background: #F1F5F0; font-weight: 700; }
   .legend span { display: inline-flex; align-items: center; gap: 4px; }
   .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
@@ -128,6 +139,7 @@
       <div class="tabs">
         <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
         <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
+        <button class="tab-btn" id="tabGridBtn" onclick="switchTab('grid')">表</button>
       </div>
 
       <div id="listView"></div>
@@ -139,6 +151,9 @@
           <span><i style="background:#FFF7E6;border:1px solid #F5DFAE;"></i>未確定のみ</span>
         </div>
         <div id="calDetail" style="margin-top:14px;"></div>
+      </div>
+      <div id="gridView" style="display:none; overflow-x:auto;">
+        <div id="gridTableWrap"></div>
       </div>
 
       <div class="status" id="actionStatus"></div>
@@ -177,6 +192,8 @@ var LIFF_ID = '2010745560-uXP5sKwZ';
 
 var profile = null;
 var allShifts = [];
+var allEmployees = [];
+var gridYearMonth = '';
 var currentTab = 'list';
 var selectedCalDate = null;
 var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
@@ -211,9 +228,12 @@ function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
   document.getElementById('tabCalBtn').classList.toggle('active', tab === 'calendar');
+  document.getElementById('tabGridBtn').classList.toggle('active', tab === 'grid');
   document.getElementById('listView').style.display = (tab === 'list') ? 'block' : 'none';
   document.getElementById('calendarView').style.display = (tab === 'calendar') ? 'block' : 'none';
+  document.getElementById('gridView').style.display = (tab === 'grid') ? 'block' : 'none';
   if (tab === 'calendar') renderCalendar();
+  if (tab === 'grid') renderGridTable();
 }
 
 function statusTagHtml(status) {
@@ -283,6 +303,66 @@ function renderList() {
     container.appendChild(title);
     grouped[dateStr].forEach(function (s) { container.appendChild(buildEntryRow(s)); });
   });
+}
+
+function renderGridTable() {
+  var wrap = document.getElementById('gridTableWrap');
+  if (!gridYearMonth || allEmployees.length === 0) {
+    wrap.innerHTML = '<p style="font-size:13px; color:#8AA391;">データがありません。</p>';
+    return;
+  }
+
+  var parts = gridYearMonth.split('-');
+  var year = Number(parts[0]), month = Number(parts[1]) - 1;
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // 日付ごと・氏名ごとに、確定シフトをまとめる（同じ日に複数あれば「、」でつなぐ）
+  var byNameDate = {};
+  allShifts.forEach(function (s) {
+    if (s.status !== '確定' || s.date.indexOf(gridYearMonth) !== 0) return;
+    var key = s.name + '|' + s.date;
+    var label = s.confStart + '〜' + s.confEnd;
+    byNameDate[key] = byNameDate[key] ? (byNameDate[key] + '、' + label) : label;
+  });
+
+  var html = '<table class="grid-table"><thead><tr><th class="name-head">氏名</th>';
+  var dayCols = [];
+  for (var d = 1; d <= daysInMonth; d++) {
+    var wd = new Date(year, month, d).getDay();
+    dayCols.push(wd);
+    var cls = wd === 0 ? ' style="background:#C0392B;"' : (wd === 6 ? ' style="background:#1F5FA5;"' : '');
+    html += '<th' + cls + '>' + (month + 1) + '/' + d + '<br>' + weekdayLabels[wd] + '</th>';
+  }
+  html += '<th>出勤日数</th></tr></thead><tbody>';
+
+  var dailyCount = new Array(daysInMonth).fill(0);
+
+  allEmployees.forEach(function (name) {
+    html += '<tr><td class="name-cell">' + name + '</td>';
+    var workDays = 0;
+    for (var d2 = 1; d2 <= daysInMonth; d2++) {
+      var dateStr = gridYearMonth + '-' + (d2 < 10 ? '0' + d2 : d2);
+      var label = byNameDate[name + '|' + dateStr];
+      var wdClass = dayCols[d2 - 1] === 0 ? ' weekend-sun' : (dayCols[d2 - 1] === 6 ? ' weekend-sat' : '');
+      if (label) {
+        html += '<td class="shift-confirmed' + wdClass + '">' + label + '</td>';
+        workDays++;
+        dailyCount[d2 - 1]++;
+      } else {
+        html += '<td class="shift-off' + wdClass + '">休み</td>';
+      }
+    }
+    html += '<td>' + workDays + '</td></tr>';
+  });
+
+  html += '<tr class="total-row"><td class="name-cell">出勤人数</td>';
+  for (var d3 = 1; d3 <= daysInMonth; d3++) {
+    html += '<td>' + dailyCount[d3 - 1] + '</td>';
+  }
+  html += '<td></td></tr></tbody></table>';
+
+  wrap.innerHTML = html;
 }
 
 function renderCalendar() {
@@ -406,10 +486,13 @@ function loadAdminData() {
       return;
     }
     allShifts = result.shifts;
+    allEmployees = result.employees || [];
+    gridYearMonth = result.yearMonth || '';
     document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
     document.getElementById('pendingCount').textContent = result.pendingCount + '件';
     renderList();
     if (currentTab === 'calendar') renderCalendar();
+    if (currentTab === 'grid') renderGridTable();
   });
   loadRoster();
 }
@@ -504,6 +587,8 @@ if (typeof liff === 'undefined') {
     }
     document.getElementById('mainContent').style.display = 'block';
     allShifts = result.shifts;
+    allEmployees = result.employees || [];
+    gridYearMonth = result.yearMonth || '';
     document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
     document.getElementById('pendingCount').textContent = result.pendingCount + '件';
     renderList();
