@@ -492,7 +492,7 @@ function renderTimecard(data) {
       '<td>' + d.date.slice(5).replace('-', '/') + '(' + d.weekday + ')</td>' +
       '<td>' + d.clockIn + '</td>' +
       '<td>' + d.clockOut + '</td>' +
-      '<td>' + (d.breakUsed ? 'あり' : 'なし') + '</td>' +
+      '<td>' + (d.breakUsed ? 'あり' : '') + '</td>' +
       '<td>' + d.hoursLabel + '</td>' +
       '</tr>';
   }).join('');
