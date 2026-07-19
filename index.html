@@ -252,6 +252,8 @@
       <div class="summary-row" id="rowBreak"><span class="label">休憩</span><span class="value" id="timeBreak">記録なし</span></div>
       <div class="summary-row" id="rowOut"><span class="label">退勤</span><span class="value" id="timeOut">記録なし</span></div>
     </div>
+
+    <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#4B5563; margin-top:10px;">今月のタイムカードを確認する</button>
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
@@ -435,6 +437,25 @@ function handleBreak() {
 }
 function handleClockOut() {
   showConfirm('退勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockout', true); });
+}
+
+function checkTimecard() {
+  if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
+  document.getElementById('btnTimecard').disabled = true;
+  setStatus('loading', 'タイムカードを作成中...しばらくお待ちください');
+
+  callServer({ action: 'generateTimecardPdf', userId: profile.userId }).then(function (result) {
+    document.getElementById('btnTimecard').disabled = false;
+    if (result.status === 'ok') {
+      setStatus('ok', result.message);
+      window.location.href = result.url;
+    } else {
+      setStatus('error', result.message);
+    }
+  }).catch(function () {
+    document.getElementById('btnTimecard').disabled = false;
+    setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
+  });
 }
 
 // QRコード経由（?action=clockin / ?action=clockout）でアクセスされた場合、
