@@ -92,8 +92,15 @@
   .btn-urgent { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; color: #fff; background: #DC2626; font-family: inherit; cursor: pointer; }
 
   .status {
-    margin-top: 10px; padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 500;
-    line-height: 1.6; display: none; white-space: pre-line; position: relative; overflow: hidden;
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 480px;
+    z-index: 2000;
+    padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 500;
+    line-height: 1.6; display: none; white-space: pre-line; overflow: hidden;
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
   .status.show { display: block; }
@@ -187,7 +194,7 @@
     </div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.02</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.03</p>
 </div>
 
 <script>
