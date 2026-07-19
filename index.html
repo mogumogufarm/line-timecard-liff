@@ -77,6 +77,25 @@
     color: #6B8F73;
     margin-bottom: 22px;
   }
+  .timecard-box {
+    margin-top: 16px; border: 1px solid #DCE6DC; border-radius: 12px; overflow: hidden; background: #fff;
+  }
+  .timecard-header {
+    background: #2F6F4E; color: #fff; padding: 10px 14px; text-align: center;
+  }
+  .timecard-header .tc-title { font-size: 15px; font-weight: 700; letter-spacing: 2px; margin: 0; }
+  .timecard-header .tc-sub { font-size: 11px; margin: 2px 0 0; opacity: 0.85; }
+  .timecard-name { padding: 8px 14px; font-size: 13px; color: #223327; border-bottom: 1px solid #E2E8DE; }
+  .timecard-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .timecard-table th {
+    background: #EAF2EC; color: #2F5D3A; padding: 6px 3px; border: 1px solid #DCE6DC; font-weight: 700;
+  }
+  .timecard-table td { padding: 6px 3px; border: 1px solid #E2E8DE; text-align: center; }
+  .timecard-table tr.weekend td:first-child { color: #C9822A; }
+  .timecard-total {
+    display: flex; justify-content: space-between; padding: 10px 14px;
+    font-size: 13px; font-weight: 700; background: #FFF7E6; color: #8A5A0B;
+  }
   .summary-box {
     margin: 0 0 22px;
     padding: 16px 18px;
@@ -254,6 +273,8 @@
     </div>
 
     <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#4B5563; margin-top:10px;">今月のタイムカードを確認する</button>
+
+    <div id="timecardCard" style="display:none;"></div>
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
@@ -442,13 +463,13 @@ function handleClockOut() {
 function checkTimecard() {
   if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
   document.getElementById('btnTimecard').disabled = true;
-  setStatus('loading', 'タイムカードを作成中...しばらくお待ちください');
+  setStatus('loading', 'タイムカードを取得中...しばらくお待ちください');
 
-  callServer({ action: 'generateTimecardPdf', userId: profile.userId }).then(function (result) {
+  callServer({ action: 'getTimecardData', userId: profile.userId }).then(function (result) {
     document.getElementById('btnTimecard').disabled = false;
+    document.getElementById('status').classList.remove('show');
     if (result.status === 'ok') {
-      setStatus('ok', result.message);
-      window.location.href = result.url;
+      renderTimecard(result);
     } else {
       setStatus('error', result.message);
     }
@@ -456,6 +477,37 @@ function checkTimecard() {
     document.getElementById('btnTimecard').disabled = false;
     setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
   });
+}
+
+function renderTimecard(data) {
+  var rowsHtml = data.days.map(function (d) {
+    var isWeekend = (d.weekday === '土' || d.weekday === '日');
+    return '<tr' + (isWeekend ? ' class="weekend"' : '') + '>' +
+      '<td>' + d.date.slice(5).replace('-', '/') + '(' + d.weekday + ')</td>' +
+      '<td>' + d.clockIn + '</td>' +
+      '<td>' + d.clockOut + '</td>' +
+      '<td>' + (d.breakUsed ? 'あり' : 'なし') + '</td>' +
+      '<td>' + d.hoursLabel + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var html =
+    '<div class="timecard-box">' +
+    '<div class="timecard-header">' +
+    '<p class="tc-title">タイムカード</p>' +
+    '<p class="tc-sub">' + data.yearMonth + '分</p>' +
+    '</div>' +
+    '<div class="timecard-name">氏名：' + data.name + ' 様</div>' +
+    '<table class="timecard-table">' +
+    '<tr><th>日付</th><th>出勤</th><th>退勤</th><th>休憩</th><th>実働(h)</th></tr>' +
+    rowsHtml +
+    '</table>' +
+    '<div class="timecard-total"><span>現時点の合計実働時間</span><span>' + data.totalHours + '時間</span></div>' +
+    '</div>';
+
+  var container = document.getElementById('timecardCard');
+  container.innerHTML = html;
+  container.style.display = 'block';
 }
 
 // QRコード経由（?action=clockin / ?action=clockout）でアクセスされた場合、
