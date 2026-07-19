@@ -265,13 +265,6 @@
     <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
     <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
 
-    <div class="summary-box" id="todaySummary">
-      <p class="summary-title">本日の勤務状況</p>
-      <div class="summary-row" id="rowIn"><span class="label">出勤</span><span class="value" id="timeIn">記録なし</span></div>
-      <div class="summary-row" id="rowBreak"><span class="label">休憩</span><span class="value" id="timeBreak">記録なし</span></div>
-      <div class="summary-row" id="rowOut"><span class="label">退勤</span><span class="value" id="timeOut">記録なし</span></div>
-    </div>
-
     <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#4B5563; margin-top:10px;">今月のタイムカードを確認する</button>
 
     <div id="timecardCard" style="display:none;"></div>
@@ -356,24 +349,11 @@ function applyDayStatus(day, breakUsed, times) {
     btnBreak.disabled = true;
     btnOut.disabled = true;
   }
-  updateTodaySummary(times || {});
-}
 
-function toggleSummaryRow_(rowId, spanId, value) {
-  var span = document.getElementById(spanId);
-  if (value) {
-    span.textContent = value;
-    span.classList.remove('empty');
-  } else {
-    span.textContent = '記録なし';
-    span.classList.add('empty');
-  }
-}
-
-function updateTodaySummary(times) {
-  toggleSummaryRow_('rowIn', 'timeIn', times.clockInTime);
-  toggleSummaryRow_('rowBreak', 'timeBreak', times.breakTime);
-  toggleSummaryRow_('rowOut', 'timeOut', times.clockOutTime);
+  times = times || {};
+  btnIn.textContent = times.clockInTime ? ('出勤　' + times.clockInTime) : '出勤';
+  btnBreak.textContent = breakUsed ? '休憩　済み' : '休憩';
+  btnOut.textContent = times.clockOutTime ? ('退勤　' + times.clockOutTime) : '退勤';
 }
 
 function callServer(payload) {
