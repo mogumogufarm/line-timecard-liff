@@ -58,25 +58,34 @@
     margin: 24px 0 0;
     line-height: 1.6;
   }
-  .greeting {
-    font-size: 14px;
-    color: #5B7A62;
+  .hero-greeting {
+    font-size: 12px;
     font-weight: 500;
-    margin-bottom: 6px;
+    letter-spacing: 0.18em;
+    color: #7C9884;
+    margin: 0 0 10px;
   }
-  .clock {
-    font-family: 'Courier New', monospace;
-    font-size: 46px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin: 2px 0 22px;
-    color: #223327;
+  .hero-date {
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: #8AA391;
+    margin: 0 0 6px;
   }
-  .date {
-    font-size: 16px;
-    font-weight: 500;
-    color: #45564A;
-    margin-bottom: 4px;
+  .hero-clock {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 200;
+    font-size: 56px;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    color: #1E2B22;
+    margin: 0 0 26px;
+  }
+  .hero-clock-sec {
+    font-size: 22px;
+    font-weight: 300;
+    color: #A9BDAF;
+    margin-left: 6px;
   }
   .timecard-box {
     margin-top: 16px; border: 1px solid #DCE6DC; border-radius: 12px; overflow: hidden; background: #fff;
@@ -257,10 +266,10 @@
       <button class="btn btn-in" onclick="submitName()">登録する</button>
     </div>
 
-    <div class="greeting" id="greeting">読み込み中...</div>
+    <p class="hero-greeting" id="greeting">読み込み中...</p>
     <div class="status" id="status"></div>
-    <div class="date" id="dateLabel"></div>
-    <div class="clock" id="clock">--:--</div>
+    <p class="hero-date" id="dateLabel"></p>
+    <div class="hero-clock"><span id="clockMain">--:--</span><span id="clockSec" class="hero-clock-sec"></span></div>
 
     <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
     <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
@@ -295,7 +304,8 @@ function tickClock() {
   var h = String(now.getHours()).padStart(2, '0');
   var m = String(now.getMinutes()).padStart(2, '0');
   var s = String(now.getSeconds()).padStart(2, '0');
-  document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+  document.getElementById('clockMain').textContent = h + ':' + m;
+  document.getElementById('clockSec').textContent = ':' + s;
   var days = ['日','月','火','水','木','金','土'];
   document.getElementById('dateLabel').textContent =
     now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + days[now.getDay()] + '）';
