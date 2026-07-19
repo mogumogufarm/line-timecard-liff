@@ -24,6 +24,10 @@
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .summary-box { background: #FAFCF9; border: 1px solid #DCE6DC; border-radius: 12px; padding: 12px; text-align: center; }
   .summary-label { font-size: 11px; color: #6B8F79; margin: 0 0 4px; }
+  .section-title {
+    font-size: 15px; font-weight: 700; color: #2F5D3A;
+    margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid #E6F0E9;
+  }
   .summary-value { font-size: 18px; font-weight: 700; color: #223327; margin: 0; }
 
   .tabs { display: flex; border: 1px solid #DCE6DC; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
@@ -141,7 +145,7 @@
     </div>
 
     <div class="card urgent-card">
-      <p style="font-size:14px; font-weight:700; margin:0 0 10px;">急募を送る</p>
+      <p class="section-title">🙋 急募を送る</p>
       <input type="date" id="urgentDate" style="width:100%; margin-bottom:8px;">
       <div class="urgent-row">
         <select id="urgentStart"></select>
@@ -152,7 +156,7 @@
     </div>
 
     <div class="card">
-      <p style="font-size:14px; font-weight:700; margin:0 0 10px;">従業員名簿の管理</p>
+      <p class="section-title">👥 従業員名簿の管理</p>
       <p style="font-size:12px; color:#8AA391; margin:0 0 10px;">ここに登録した氏名と一致すると、本人がLIFFページで初回登録できるようになります。</p>
 
       <div id="rosterList" style="margin-bottom:14px;">読み込み中...</div>
