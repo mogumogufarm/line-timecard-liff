@@ -15,6 +15,7 @@
     background: linear-gradient(180deg, #EEF4EC 0%, #F4F6F8 220px);
     color: #223327;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   .wrap { max-width: 520px; margin: 0 auto; padding: 28px 14px 40px; }
   .site-title { font-size: 20px; font-weight: 700; text-align: center; margin: 0 0 4px; color: #2F5D3A; }
@@ -152,7 +153,7 @@
         </div>
         <div id="calDetail" style="margin-top:14px;"></div>
       </div>
-      <div id="gridView" style="display:none; overflow-x:auto;">
+      <div id="gridView" style="display:none; overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;">
         <div id="gridTableWrap"></div>
       </div>
 
