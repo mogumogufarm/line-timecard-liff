@@ -222,7 +222,7 @@
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.04</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.05</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -326,7 +326,7 @@ function submittedTimeLabel(s) {
 function submittedStatusLabel(s) {
   if (s.status === '確定') return '確定';
   if (s.status === '却下') return '見送り';
-  return '未確定（タップで編集）';
+  return '申請済・未確定・タップで編集';
 }
 
 function updatePendingUI() {
