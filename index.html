@@ -69,13 +69,14 @@
     font-size: 46px;
     font-weight: 700;
     letter-spacing: 2px;
-    margin: 2px 0 6px;
+    margin: 2px 0 22px;
     color: #223327;
   }
   .date {
-    font-size: 13px;
-    color: #6B8F73;
-    margin-bottom: 22px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #45564A;
+    margin-bottom: 4px;
   }
   .timecard-box {
     margin-top: 16px; border: 1px solid #DCE6DC; border-radius: 12px; overflow: hidden; background: #fff;
@@ -258,8 +259,8 @@
 
     <div class="greeting" id="greeting">読み込み中...</div>
     <div class="status" id="status"></div>
-    <div class="clock" id="clock">--:--</div>
     <div class="date" id="dateLabel"></div>
+    <div class="clock" id="clock">--:--</div>
 
     <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
     <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
