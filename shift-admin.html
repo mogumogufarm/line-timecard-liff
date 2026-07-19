@@ -163,7 +163,7 @@
 
     <div class="card urgent-card">
       <p class="section-title">🙋 急募を送る</p>
-      <input type="date" id="urgentDate" style="width:100%; margin-bottom:8px;">
+      <select id="urgentDate" style="width:100%; margin-bottom:8px;"></select>
       <div class="urgent-row">
         <select id="urgentStart"></select>
         <select id="urgentEnd"></select>
@@ -187,7 +187,7 @@
     </div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.01</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.02</p>
 </div>
 
 <script>
@@ -569,7 +569,20 @@ function deleteRosterEntry(row, name) {
 }
 
 var todayISO = new Date().toISOString().split('T')[0];
-document.getElementById('urgentDate').min = todayISO;
+(function () {
+  var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+  var sel = document.getElementById('urgentDate');
+  var today = new Date();
+  for (var i = 0; i < 30; i++) {
+    var d = new Date();
+    d.setDate(today.getDate() + i);
+    var iso = d.toISOString().split('T')[0];
+    var opt = document.createElement('option');
+    opt.value = iso;
+    opt.textContent = (d.getMonth() + 1) + '/' + d.getDate() + '(' + weekdayLabels[d.getDay()] + ')';
+    sel.appendChild(opt);
+  }
+})();
 fillHourSelect(document.getElementById('urgentStart'), '09:00');
 fillHourSelect(document.getElementById('urgentEnd'), '13:00');
 
