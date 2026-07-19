@@ -215,14 +215,14 @@
         <div class="calendar-grid" id="calGrid"></div>
       </div>
 
-      <button class="btn" id="submitBtn" onclick="submitAll()">この内容で提出する</button>
+      <button class="btn" id="submitBtn" onclick="submitAll()">内容を確認して提出する</button>
       <div class="status" id="status"></div>
     </div>
 
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.03</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.04</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -254,7 +254,8 @@
 
 <div class="modal-overlay" id="reviewModal">
   <div class="modal-box" style="max-width:340px;">
-    <p class="modal-title">この内容で提出します<span id="reviewCount" style="font-weight:400; font-size:13px; color:#8AA391;"></span></p>
+    <p class="modal-title">以下の内容で提出します<span id="reviewCount" style="font-weight:400; font-size:13px; color:#8AA391;"></span></p>
+    <p style="font-size:12px; color:#8AA391; margin:-8px 0 12px; text-align:center;">内容をご確認のうえ「提出する」を押してください</p>
     <div class="review-list-wrap">
       <div id="reviewList" style="text-align:left; max-height:260px; overflow-y:auto;"></div>
       <div class="review-fade" id="reviewFade" style="display:none;"></div>
@@ -334,13 +335,13 @@ function updatePendingUI() {
   var badge = document.getElementById('pendingBadge');
 
   if (count > 0) {
-    btn.textContent = 'この内容で提出する（' + count + '件）';
+    btn.textContent = '内容を確認して提出する（' + count + '件）';
     btn.classList.add('has-pending');
     btn.classList.remove('no-pending');
     badge.style.display = 'block';
     badge.textContent = '📝 ' + count + '件、まだ提出していません';
   } else {
-    btn.textContent = 'この内容で提出する';
+    btn.textContent = '内容を確認して提出する';
     btn.classList.remove('has-pending');
     btn.classList.add('no-pending');
     badge.style.display = 'none';
