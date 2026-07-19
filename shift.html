@@ -155,6 +155,12 @@
   .modal-box { background: #fff; border-radius: 18px; padding: 22px 20px; max-width: 320px; width: 100%; box-shadow: 0 10px 34px rgba(0,0,0,0.22); text-align: center; }
   .modal-box p.modal-title { font-size: 15px; font-weight: 700; margin: 0 0 14px; color: #223327; }
   .review-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #E2E8DE; }
+  .review-list-wrap { position: relative; margin-bottom: 6px; }
+  .review-fade {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 28px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95));
+    pointer-events: none;
+  }
   .modal-buttons-row { display: flex; gap: 8px; margin-top: 10px; }
   .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .modal-btn.clear { background: #F1F5F0; color: #5B7A62; }
@@ -216,7 +222,7 @@
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.02</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.03</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -248,8 +254,12 @@
 
 <div class="modal-overlay" id="reviewModal">
   <div class="modal-box" style="max-width:340px;">
-    <p class="modal-title">この内容で提出します</p>
-    <div id="reviewList" style="text-align:left; max-height:260px; overflow-y:auto; margin-bottom:16px;"></div>
+    <p class="modal-title">この内容で提出します<span id="reviewCount" style="font-weight:400; font-size:13px; color:#8AA391;"></span></p>
+    <div class="review-list-wrap">
+      <div id="reviewList" style="text-align:left; max-height:260px; overflow-y:auto;"></div>
+      <div class="review-fade" id="reviewFade" style="display:none;"></div>
+    </div>
+    <p id="reviewScrollHint" style="display:none; text-align:center; font-size:11px; color:#8A5A0B; margin:6px 0 12px;">↕ 下にスクロールするとすべて確認できます</p>
     <div class="modal-buttons-row">
       <button class="modal-btn close" onclick="closeReviewModal()">キャンセル</button>
       <button class="modal-btn decide" onclick="confirmSubmit()">提出する</button>
@@ -671,7 +681,9 @@ function submitAll() {
 function openReviewModal(entries) {
   var list = document.getElementById('reviewList');
   list.innerHTML = '';
-  entries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (e) {
+  var sorted = entries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  document.getElementById('reviewCount').textContent = '（' + sorted.length + '件）';
+  sorted.forEach(function (e) {
     var d = new Date(e.date + 'T00:00:00');
     var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
     var typeLabel = (e.type === 'カスタム') ? (e.startTime + '〜' + e.endTime) : e.type;
@@ -681,6 +693,12 @@ function openReviewModal(entries) {
     list.appendChild(row);
   });
   document.getElementById('reviewModal').classList.add('show');
+
+  setTimeout(function () {
+    var scrollable = list.scrollHeight > list.clientHeight + 4;
+    document.getElementById('reviewFade').style.display = scrollable ? 'block' : 'none';
+    document.getElementById('reviewScrollHint').style.display = scrollable ? 'block' : 'none';
+  }, 0);
 }
 
 function closeReviewModal() {
