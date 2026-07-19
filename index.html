@@ -437,6 +437,32 @@ function handleClockOut() {
   showConfirm('退勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockout', true); });
 }
 
+// QRコード経由（?action=clockin / ?action=clockout）でアクセスされた場合、
+// 該当するボタンの確認ポップアップを自動で開く
+function getQrAction_() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.has('action')) return params.get('action');
+  if (params.has('liff.state')) {
+    var state = decodeURIComponent(params.get('liff.state'));
+    var stateParams = new URLSearchParams(state.split('?')[1] || '');
+    return stateParams.get('action');
+  }
+  return null;
+}
+
+var qrAutoTriggered_ = false;
+function triggerQrActionIfNeeded_() {
+  if (qrAutoTriggered_) return;
+  var action = getQrAction_();
+  if (action === 'clockin' && !document.getElementById('btnIn').disabled) {
+    qrAutoTriggered_ = true;
+    handleClockIn();
+  } else if (action === 'clockout' && !document.getElementById('btnOut').disabled) {
+    qrAutoTriggered_ = true;
+    handleClockOut();
+  }
+}
+
 function submitName() {
   if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
   var input = document.getElementById('nameInput');
@@ -452,6 +478,7 @@ function submitName() {
       document.getElementById('greeting').textContent = result.name + ' さん';
       setStatus('ok', '初回登録が完了しました！\n今後は自動でログインされます！', true);
       applyDayStatus(result.day, result.breakUsed, result);
+      triggerQrActionIfNeeded_();
     } else {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
     }
@@ -492,6 +519,7 @@ if (typeof liff === 'undefined') {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
       applyDayStatus(result.day, result.breakUsed, result);
+      triggerQrActionIfNeeded_();
     } else if (result.status === 'needName') {
       document.getElementById('status').classList.remove('show');
       document.getElementById('registerBox').style.display = 'block';
