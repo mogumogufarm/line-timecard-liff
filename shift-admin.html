@@ -65,10 +65,12 @@
   .legend span { display: inline-flex; align-items: center; gap: 4px; }
   .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
-  .urgent-card input, .urgent-card select {
+  .urgent-card input, .urgent-card select,
+  .card input[type="text"], .card input[type="number"] {
     padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #CBD5C9; font-family: inherit;
   }
   .urgent-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .roster-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #E2E8DE; }
   .urgent-row select { flex: 1; }
   .btn-urgent { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; color: #fff; background: #DC2626; font-family: inherit; cursor: pointer; }
 
@@ -147,6 +149,20 @@
       </div>
       <button class="btn-urgent" onclick="sendUrgentCall()">全スタッフに送信</button>
       <div class="status" id="urgentStatus"></div>
+    </div>
+
+    <div class="card">
+      <p style="font-size:14px; font-weight:700; margin:0 0 10px;">従業員名簿の管理</p>
+      <p style="font-size:12px; color:#8AA391; margin:0 0 10px;">ここに登録した氏名と一致すると、本人がLIFFページで初回登録できるようになります。</p>
+
+      <div id="rosterList" style="margin-bottom:14px;">読み込み中...</div>
+
+      <div class="urgent-row">
+        <input type="text" id="rosterName" placeholder="氏名（フルネーム）" style="flex:2;">
+        <input type="number" id="rosterWage" placeholder="時給" style="flex:1;">
+      </div>
+      <button class="btn-urgent" style="background:#2F6F4E;" onclick="addRosterEntry()">名簿に追加する</button>
+      <div class="status" id="rosterStatus"></div>
     </div>
   </div>
 </div>
@@ -391,6 +407,74 @@ function loadAdminData() {
     renderList();
     if (currentTab === 'calendar') renderCalendar();
   });
+  loadRoster();
+}
+
+function loadRoster() {
+  callServer({ action: 'adminListRoster', userId: profile.userId }).then(function (result) {
+    var el = document.getElementById('rosterList');
+    if (result.status !== 'ok') {
+      el.textContent = result.message || '取得に失敗しました。';
+      return;
+    }
+    if (!result.roster || result.roster.length === 0) {
+      el.textContent = 'まだ名簿に登録がありません。';
+      return;
+    }
+    el.innerHTML = '';
+    result.roster.forEach(function (r) {
+      var row = document.createElement('div');
+      row.className = 'roster-row';
+      row.innerHTML = '<span>' + r.name + '（時給' + Number(r.wage).toLocaleString() + '円）</span>';
+      var delLink = document.createElement('a');
+      delLink.href = 'javascript:void(0)';
+      delLink.textContent = '削除';
+      delLink.style.color = '#DC2626';
+      delLink.style.fontSize = '12px';
+      delLink.onclick = function (row, name) {
+        return function () {
+          if (row.dataset.confirming === 'true') {
+            deleteRosterEntry(row, name);
+            return;
+          }
+          row.dataset.confirming = 'true';
+          delLink.textContent = '本当に削除？';
+          setTimeout(function () { row.dataset.confirming = 'false'; delLink.textContent = '削除'; }, 4000);
+        };
+      }(r.row, r.name);
+      row.appendChild(delLink);
+      el.appendChild(row);
+    });
+  });
+}
+
+function addRosterEntry() {
+  var name = document.getElementById('rosterName').value.trim();
+  var wage = document.getElementById('rosterWage').value;
+  var el = document.getElementById('rosterStatus');
+
+  if (!name || !wage) {
+    setToast('rosterStatus', 'error', '氏名と時給を入力してください。');
+    return;
+  }
+
+  setToast('rosterStatus', 'loading', '追加中...しばらくお待ちください');
+  callServer({ action: 'adminAddRosterEntry', userId: profile.userId, name: name, wage: wage }).then(function (result) {
+    setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    if (result.status === 'ok') {
+      document.getElementById('rosterName').value = '';
+      document.getElementById('rosterWage').value = '';
+      loadRoster();
+    }
+  });
+}
+
+function deleteRosterEntry(row, name) {
+  setToast('rosterStatus', 'loading', '削除中...しばらくお待ちください');
+  callServer({ action: 'adminDeleteRosterEntry', userId: profile.userId, row: row }).then(function (result) {
+    setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    if (result.status === 'ok') loadRoster();
+  });
 }
 
 var todayISO = new Date().toISOString().split('T')[0];
@@ -419,6 +503,7 @@ if (typeof liff === 'undefined') {
     document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
     document.getElementById('pendingCount').textContent = result.pendingCount + '件';
     renderList();
+    loadRoster();
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
     var el = document.querySelector('#initStatusCard .status');
