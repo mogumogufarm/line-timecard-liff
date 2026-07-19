@@ -154,6 +154,7 @@
   .modal-overlay.show { display: flex; }
   .modal-box { background: #fff; border-radius: 18px; padding: 22px 20px; max-width: 320px; width: 100%; box-shadow: 0 10px 34px rgba(0,0,0,0.22); text-align: center; }
   .modal-box p.modal-title { font-size: 15px; font-weight: 700; margin: 0 0 14px; color: #223327; }
+  .review-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #E2E8DE; }
   .modal-buttons-row { display: flex; gap: 8px; margin-top: 10px; }
   .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .modal-btn.clear { background: #F1F5F0; color: #5B7A62; }
@@ -215,7 +216,7 @@
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.01</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.02</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -241,6 +242,17 @@
     <div class="modal-buttons-row">
       <button class="modal-btn close" onclick="closeConfirm(false)">キャンセル</button>
       <button class="modal-btn decide" style="background:#DC2626;" onclick="closeConfirm(true)">取り消す</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reviewModal">
+  <div class="modal-box" style="max-width:340px;">
+    <p class="modal-title">この内容で提出します</p>
+    <div id="reviewList" style="text-align:left; max-height:260px; overflow-y:auto; margin-bottom:16px;"></div>
+    <div class="modal-buttons-row">
+      <button class="modal-btn close" onclick="closeReviewModal()">キャンセル</button>
+      <button class="modal-btn decide" onclick="confirmSubmit()">提出する</button>
     </div>
   </div>
 </div>
@@ -631,14 +643,15 @@ function requestCancelShift() {
   });
 }
 
+var pendingEntries_ = null;
+
 function submitAll() {
   var entries = [];
   var incomplete = false;
   Object.keys(selections).forEach(function (dateStr) {
     var sel = selections[dateStr];
     if (sel.type === 'カスタム' && (!sel.startTime || !sel.endTime)) { incomplete = true; return; }
-    var entry = { date: dateStr, type: sel.type };
-    if (sel.type === 'カスタム') { entry.startTime = sel.startTime; entry.endTime = sel.endTime; }
+    var entry = { date: dateStr, type: sel.type, startTime: sel.startTime, endTime: sel.endTime };
     entries.push(entry);
   });
 
@@ -651,6 +664,34 @@ function submitAll() {
     return;
   }
 
+  pendingEntries_ = entries;
+  openReviewModal(entries);
+}
+
+function openReviewModal(entries) {
+  var list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  entries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).forEach(function (e) {
+    var d = new Date(e.date + 'T00:00:00');
+    var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
+    var typeLabel = (e.type === 'カスタム') ? (e.startTime + '〜' + e.endTime) : e.type;
+    var row = document.createElement('div');
+    row.className = 'review-row';
+    row.innerHTML = '<span>' + label + '</span><span>' + typeLabel + '</span>';
+    list.appendChild(row);
+  });
+  document.getElementById('reviewModal').classList.add('show');
+}
+
+function closeReviewModal() {
+  document.getElementById('reviewModal').classList.remove('show');
+}
+
+function confirmSubmit() {
+  var entries = pendingEntries_;
+  closeReviewModal();
+  if (!entries) return;
+
   setPageStatus('loading', '送信中...しばらくお待ちください');
   document.getElementById('submitBtn').disabled = true;
 
@@ -660,6 +701,7 @@ function submitAll() {
       document.getElementById('submitBtn').disabled = false;
       if (result.status === 'ok') {
         selections = {};
+        pendingEntries_ = null;
         buildDayList();
         renderCalendarGrid();
         loadMyShifts();
