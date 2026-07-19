@@ -143,6 +143,11 @@
 
   .day-row-submitted { background: #F3F5F2; }
   .day-submitted-info { margin: 0; font-size: 13px; font-weight: 700; }
+  .edit-pill {
+    background: #2F6F4E; color: #fff; border: none; border-radius: 999px;
+    padding: 5px 14px; font-size: 11px; font-weight: 700; font-family: inherit;
+    cursor: pointer; white-space: nowrap; margin-left: 8px;
+  }
   .day-submitted-info.status-pending { color: #8A5A0B; }
   .day-submitted-info.status-confirmed { color: #16A34A; }
   .day-submitted-info.status-rejected { color: #C97C7C; }
@@ -200,7 +205,7 @@
         <span><i class="dot dot-confirmed"></i>確定</span>
         <span><i class="dot dot-rejected"></i>見送り</span>
       </div>
-      <p style="font-size:11px; color:#8AA391; margin:0 0 12px;">グレーの日は提出済みです。タップで編集・取り消しができます</p>
+      <p style="font-size:11px; color:#8AA391; margin:0 0 12px;">未確定の日はタップすると内容を編集・取り消しできます（確定・見送り済みは編集できません）</p>
 
       <div id="listView">
         <div id="dayList"></div>
@@ -222,7 +227,7 @@
     <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.05</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.06</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -326,7 +331,7 @@ function submittedTimeLabel(s) {
 function submittedStatusLabel(s) {
   if (s.status === '確定') return '確定';
   if (s.status === '却下') return '見送り';
-  return '申請済・未確定・タップで編集';
+  return '申請済（未確定）';
 }
 
 function updatePendingUI() {
@@ -370,10 +375,27 @@ function buildDayList() {
     row.appendChild(labelEl);
 
     if (submitted) {
-      var info = document.createElement('p');
+      var infoRow = document.createElement('div');
+      infoRow.style.display = 'flex';
+      infoRow.style.justifyContent = 'space-between';
+      infoRow.style.alignItems = 'center';
+
+      var info = document.createElement('span');
       info.className = 'day-submitted-info status-' + statusClass(submitted.status);
       info.textContent = submittedTimeLabel(submitted) + '　' + submittedStatusLabel(submitted);
-      row.appendChild(info);
+      infoRow.appendChild(info);
+
+      if (submitted.status === '未確定') {
+        var editBtn = document.createElement('button');
+        editBtn.className = 'edit-pill';
+        editBtn.textContent = 'タップで編集';
+        editBtn.onclick = function (submitted) {
+          return function (ev) { ev.stopPropagation(); openModalForEdit(submitted); };
+        }(submitted);
+        infoRow.appendChild(editBtn);
+      }
+
+      row.appendChild(infoRow);
       if (submitted.status === '未確定') {
         row.style.cursor = 'pointer';
         row.onclick = function (submitted) { return function () { openModalForEdit(submitted); }; }(submitted);
