@@ -483,9 +483,9 @@ function renderTimecard(data) {
   var rowsHtml = data.days.map(function (d) {
     var isWeekend = (d.weekday === '土' || d.weekday === '日');
     if (d.noRecord) {
-      return '<tr' + (isWeekend ? ' class="weekend"' : '') + ' style="color:#B8C2BC;">' +
+      return '<tr' + (isWeekend ? ' class="weekend"' : '') + '>' +
         '<td>' + d.date.slice(5).replace('-', '/') + '(' + d.weekday + ')</td>' +
-        '<td colspan="4">記録なし</td>' +
+        '<td></td><td></td><td></td><td></td>' +
         '</tr>';
     }
     return '<tr' + (isWeekend ? ' class="weekend"' : '') + '>' +
