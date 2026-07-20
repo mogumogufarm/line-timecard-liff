@@ -62,11 +62,22 @@ if (!pid || !t) {
         return;
       }
       document.getElementById('fileName').textContent = result.fileName;
-      var img = document.getElementById('payslipImg');
-      img.src = 'data:' + result.mimeType + ';base64,' + result.base64;
-      img.style.display = 'block';
       statusEl.style.display = 'none';
-      document.getElementById('hint').style.display = 'block';
+
+      if (result.mimeType === 'image/png' || result.mimeType === 'image/jpeg') {
+        var img = document.getElementById('payslipImg');
+        img.src = 'data:' + result.mimeType + ';base64,' + result.base64;
+        img.style.display = 'block';
+        document.getElementById('hint').style.display = 'block';
+      } else {
+        var wrap = document.querySelector('.wrap');
+        var link = document.createElement('a');
+        link.download = result.fileName + '.pdf';
+        link.href = 'data:' + result.mimeType + ';base64,' + result.base64;
+        link.textContent = 'PDFを開く・保存する';
+        link.style.cssText = 'display:inline-block;padding:16px 32px;background:#06C755;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;font-size:15px;';
+        wrap.appendChild(link);
+      }
     })
     .catch(function () {
       statusEl.className = 'status error';
