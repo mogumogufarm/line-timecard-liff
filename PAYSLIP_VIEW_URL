@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>給与明細</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #F4F6F8;
+    color: #223327;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px; text-align: center; }
+  .file-name { font-weight: 700; font-size: 15px; margin: 0 0 16px; }
+  .payslip-img {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+    display: none;
+  }
+  .hint { color: #8AA391; font-size: 12px; margin-top: 16px; }
+  .status { font-size: 14px; padding: 20px; }
+  .status.error { color: #C0392B; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="file-name" id="fileName"></p>
+  <div class="status" id="status">読み込み中...しばらくお待ちください</div>
+  <img class="payslip-img" id="payslipImg" alt="給与明細">
+  <p class="hint" id="hint" style="display:none;">画像を長押しすると保存できます</p>
+</div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0rdTpNT8b5z53fqmBLt5PXPZTYBnN1FnuZR4Ln2r-ELm4g/exec';
+
+function getParam(name) {
+  var params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
+var pid = getParam('pid');
+var t = getParam('t');
+var statusEl = document.getElementById('status');
+
+if (!pid || !t) {
+  statusEl.className = 'status error';
+  statusEl.textContent = 'リンクが正しくありません。';
+} else {
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'getPayslipImage', pid: pid, t: t })
+  }).then(function (res) { return res.json(); })
+    .then(function (result) {
+      if (result.status !== 'ok') {
+        statusEl.className = 'status error';
+        statusEl.textContent = result.message || 'リンクが無効です。管理者にお問い合わせください。';
+        return;
+      }
+      document.getElementById('fileName').textContent = result.fileName;
+      var img = document.getElementById('payslipImg');
+      img.src = 'data:' + result.mimeType + ';base64,' + result.base64;
+      img.style.display = 'block';
+      statusEl.style.display = 'none';
+      document.getElementById('hint').style.display = 'block';
+    })
+    .catch(function () {
+      statusEl.className = 'status error';
+      statusEl.textContent = '通信エラーが発生しました。もう一度お試しください。';
+    });
+}
+</script>
+</body>
+</html>
