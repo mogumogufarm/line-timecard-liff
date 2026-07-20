@@ -3,328 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>勤怠打刻</title>
+<title>もぐもぐ農園 運営管理</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: 'Noto Sans JP', sans-serif;
-    background: linear-gradient(180deg, #EEF4EC 0%, #F4F6F8 220px);
-    color: #223327;
+    background: #F3F2EE;
+    color: #1F1F1D;
     min-height: 100vh;
   }
-  .wrap {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 32px 16px 40px;
-    text-align: center;
-  }
-  .site-title {
-    font-size: 21px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    margin: 0 0 4px;
-    color: #2F5D3A;
-  }
-  .site-subtitle {
-    font-size: 12px;
-    color: #6B8F73;
-    letter-spacing: 0.15em;
-    margin: 0 0 20px;
-  }
-  .card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 28px 20px 24px;
-    box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08);
-  }
-  .register-heading {
-    font-size: 16px;
-    font-weight: 700;
-    color: #B45309;
-    margin: 0 0 8px;
-  }
-  .location-notice {
-    font-size: 12px;
-    color: #94A3B8;
-    margin: 24px 0 0;
-    line-height: 1.6;
-  }
-  .hero-greeting {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    color: #7C9884;
-    margin: 0 0 10px;
-  }
-  .hero-date {
-    font-size: 15px;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    color: #8AA391;
-    margin: 0 0 6px;
-  }
-  .hero-clock {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-weight: 200;
-    font-size: 56px;
-    letter-spacing: 0.03em;
-    line-height: 1;
-    color: #1E2B22;
-    margin: 0 0 26px;
-  }
-  .hero-clock-sec {
-    font-size: 22px;
-    font-weight: 300;
-    color: #A9BDAF;
-    margin-left: 6px;
-  }
-  .timecard-box {
-    margin-top: 16px; border: 1px solid #DCE6DC; border-radius: 12px; overflow: hidden; background: #fff;
-  }
-  .timecard-header {
-    background: #2F6F4E; color: #fff; padding: 10px 14px; text-align: center;
-  }
-  .timecard-header .tc-title { font-size: 15px; font-weight: 700; letter-spacing: 2px; margin: 0; }
-  .timecard-header .tc-sub { font-size: 11px; margin: 2px 0 0; opacity: 0.85; }
-  .timecard-name { padding: 8px 14px; font-size: 13px; color: #223327; border-bottom: 1px solid #E2E8DE; }
-  .timecard-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .timecard-table th {
-    background: #EAF2EC; color: #2F5D3A; padding: 6px 3px; border: 1px solid #DCE6DC; font-weight: 700;
-  }
-  .timecard-table td { padding: 6px 3px; border: 1px solid #E2E8DE; text-align: center; }
-  .timecard-table tr.weekend td:first-child { color: #C9822A; }
-  .timecard-total {
-    display: flex; justify-content: space-between; padding: 10px 14px;
-    font-size: 13px; font-weight: 700; background: #FFF7E6; color: #8A5A0B;
-  }
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 18px;
-    margin-bottom: 12px;
-    border: none;
-    border-radius: 16px;
-    font-size: 17px;
-    font-weight: 700;
-    font-family: inherit;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .btn:active { opacity: 0.8; transform: scale(0.98); }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-  .btn-in   { background: #16A34A; }
-  .btn-break{ background: #F59E0B; }
-  .btn-out  { background: #DC2626; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 28px 16px 40px; }
+  .eyebrow { font-size: 12px; color: #8A897E; margin: 0 0 2px; }
+  .site-title { font-size: 21px; font-weight: 700; margin: 0 0 20px; color: #1F1F1D; }
+
   .status {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.6;
-    display: none;
-    text-align: left;
-    white-space: pre-line;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 448px; z-index: 2000;
+    padding: 14px 16px; border-radius: 12px; font-size: 14px; font-weight: 500;
+    line-height: 1.6; display: none; white-space: pre-line; overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.25);
   }
   .status.show { display: block; }
-  .status.center { text-align: center; }
-  .status.ok    { background: #16A34A; color: #fff; }
-  .status.error { background: #DC2626; color: #fff; }
-  .status.loading { background: #374151; color: #fff; padding-bottom: 18px; }
-  .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
-  .status .progress-fill {
-    position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
-    background: #fff; border-radius: 2px;
-    animation: progressSlide 1.1s ease-in-out infinite;
+  .status.error { background: #C0392B; color: #fff; }
+  .status.loading { background: #374151; color: #fff; }
+
+  .section-label { font-size: 12px; font-weight: 700; color: #8A897E; margin: 20px 0 8px; display: flex; align-items: center; gap: 6px; }
+  .section-label-tag { font-size: 10px; font-weight: 400; color: #B5B3A8; }
+  .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 6px; }
+  .stat-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+  .stat-card { background: #fff; border: 1px solid #E3E1D9; border-radius: 12px; padding: 14px; }
+  .stat-card-mini { padding: 8px; border-radius: 8px; }
+  .stat-value-mini { font-size: 14px !important; }
+  .sales-box { background: #fff; border: 1px solid #E3E1D9; border-radius: 12px; padding: 12px; margin-bottom: 6px; }
+  .sales-store-name { font-size: 12px; font-weight: 700; color: #6B6A61; margin: 8px 0 6px; }
+  .sales-store-name:first-child { margin-top: 0; }
+  .sales-today-card { background: #FAEEDA; border: 1px solid #F0D9A8; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; display: block; text-decoration: none; }
+  .sales-today-value { font-size: 28px; font-weight: 700; color: #854F0B; margin: 0; }
+  .tap-hint { font-size: 10px; font-weight: 400; color: #A8935E; }
+  .card { background: #fff; border: 1px solid #E3E1D9; border-radius: 12px; padding: 14px; margin-bottom: 6px; }
+  .variety-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .variety-row input, .variety-row select { flex: 1; padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #E3E1D9; font-family: inherit; }
+  .variety-btn { width: 100%; padding: 10px; border: none; border-radius: 8px; background: #1F1F1D; color: #fff; font-family: inherit; font-size: 13px; cursor: pointer; }
+  .stat-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
+  .sales-store-name:first-child { margin-top: 0; }
+  .stat-label { font-size: 12px; color: #8A897E; margin: 0 0 4px; }
+  .stat-value { font-size: 22px; font-weight: 700; margin: 0; }
+
+  .menu-list { display: flex; flex-direction: column; gap: 8px; }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 1px solid #E3E1D9; border-radius: 12px; padding: 14px 16px;
+    text-decoration: none; color: inherit;
   }
-  @keyframes progressSlide {
-    0% { left: -40%; }
-    100% { left: 100%; }
+  .menu-item.disabled { opacity: 0.5; pointer-events: none; }
+  .menu-icon-badge {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
   }
-  .register-box {
-    padding: 4px 0 8px;
+  .menu-text-title { font-weight: 500; font-size: 14px; margin: 0; }
+  .menu-text-sub { font-size: 12px; color: #8A897E; margin: 0; }
+  .menu-tag {
+    margin-left: auto; font-size: 10px; color: #8A897E; white-space: nowrap;
   }
-  .register-box p { margin: 0 0 12px; font-size: 14px; color: #334155; }
-  .register-box input {
-    width: 100%;
-    padding: 13px;
-    font-size: 16px;
-    border: 1px solid #CBD5E1;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    font-family: inherit;
-    text-align: center;
-  }
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(20, 30, 22, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 1000;
-  }
-  .modal-box {
-    background: #fff;
-    border-radius: 18px;
-    padding: 26px 22px 20px;
-    max-width: 320px;
-    width: 100%;
-    box-shadow: 0 10px 34px rgba(0,0,0,0.22);
-    text-align: center;
-  }
-  .modal-box p {
-    font-size: 16px;
-    font-weight: 500;
-    color: #223327;
-    margin: 0 0 22px;
-    line-height: 1.6;
-  }
-  .modal-buttons {
-    display: flex;
-    gap: 10px;
-  }
-  .modal-btn {
-    flex: 1;
-    padding: 13px;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .modal-btn.cancel { background: #E5E7EB; color: #374151; }
-  .modal-btn.ok { background: #16A34A; color: #fff; }
+
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-teal { background: #E1F5EE; color: #0F6E56; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-purple { background: #EEEDFE; color: #534AB7; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1 class="site-title">🌾 もぐもぐ農園勤怠</h1>
-  <p class="site-subtitle">TIME CARD</p>
+  <p class="eyebrow">もぐもぐ農園</p>
+  <h1 class="site-title">運営管理システム</h1>
 
-  <div class="card">
-    <div class="register-box" id="registerBox" style="display:none;">
-      <p class="register-heading">⚠ 未登録です</p>
-      <p>お名前（フルネーム）を入力して登録してください。</p>
-      <input type="text" id="nameInput" placeholder="例：田中 太郎">
-      <button class="btn btn-in" onclick="submitName()">登録する</button>
-    </div>
-
-    <p class="hero-greeting" id="greeting">読み込み中...</p>
-    <div class="status" id="status"></div>
-    <p class="hero-date" id="dateLabel"></p>
-    <div class="hero-clock"><span id="clockMain">--:--</span><span id="clockSec" class="hero-clock-sec"></span></div>
-
-    <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
-    <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
-    <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
-
-    <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#4B5563; margin-top:10px;">今月のタイムカードを確認する</button>
-
-    <div id="timecardCard" style="display:none;"></div>
+  <div id="blockedMessage" style="display:none; background:#fff; border:1px solid #E3E1D9; border-radius:12px; padding:24px;">
+    <p style="font-weight:700; color:#A32D2D;">この画面は管理者のみ利用できます</p>
   </div>
 
-  <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.01</p>
-</div>
+  <div id="menu" style="display:none;">
+    <p class="section-label" id="salesSection">直売所の売上</p>
+    <div class="sales-box">
+      <div class="sales-store-name">道の駅しらね</div>
+      <a class="stat-card sales-today-card" href="#" id="sales-shirane-link">
+        <p class="stat-label">本日の売上 <span class="tap-hint">タップで時間別を表示</span></p>
+        <p class="sales-today-value" id="sales-shirane-today">-</p>
+      </a>
+      <div class="stat-grid stat-grid-3">
+        <div class="stat-card stat-card-mini"><p class="stat-label">昨日</p><p class="stat-value stat-value-mini" id="sales-shirane-yesterday">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">今月</p><p class="stat-value stat-value-mini" id="sales-shirane-thisMonth">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">先月</p><p class="stat-value stat-value-mini" id="sales-shirane-lastMonth">-</p></div>
+      </div>
 
-<div class="modal-overlay" id="modalOverlay" style="display:none;">
-  <div class="modal-box">
-    <p id="modalMessage"></p>
-    <div class="modal-buttons">
-      <button class="modal-btn cancel" id="modalCancel">キャンセル</button>
-      <button class="modal-btn ok" id="modalOk">OK</button>
+      <div class="sales-store-name">い～なとうぶ竜王店</div>
+      <a class="stat-card sales-today-card" href="#" id="sales-ryuo-link">
+        <p class="stat-label">本日の売上 <span class="tap-hint">タップで時間別を表示</span></p>
+        <p class="sales-today-value" id="sales-ryuo-today">-</p>
+      </a>
+      <div class="stat-grid stat-grid-3">
+        <div class="stat-card stat-card-mini"><p class="stat-label">昨日</p><p class="stat-value stat-value-mini" id="sales-ryuo-yesterday">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">今月</p><p class="stat-value stat-value-mini" id="sales-ryuo-thisMonth">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">先月</p><p class="stat-value stat-value-mini" id="sales-ryuo-lastMonth">-</p></div>
+      </div>
+
+      <div class="sales-store-name">い～なとうぶ昭和店</div>
+      <a class="stat-card sales-today-card" href="#" id="sales-showa-link">
+        <p class="stat-label">本日の売上 <span class="tap-hint">タップで時間別を表示</span></p>
+        <p class="sales-today-value" id="sales-showa-today">-</p>
+      </a>
+      <div class="stat-grid stat-grid-3">
+        <div class="stat-card stat-card-mini"><p class="stat-label">昨日</p><p class="stat-value stat-value-mini" id="sales-showa-yesterday">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">今月</p><p class="stat-value stat-value-mini" id="sales-showa-thisMonth">-</p></div>
+        <div class="stat-card stat-card-mini"><p class="stat-label">先月</p><p class="stat-value stat-value-mini" id="sales-showa-lastMonth">-</p></div>
+      </div>
+    </div>
+
+    <p class="section-label">在庫登録</p>
+    <div class="card">
+      <div class="variety-row">
+        <select id="stockStoreInput"></select>
+      </div>
+      <div class="variety-row">
+        <select id="stockCropInput" onchange="onStockCropChange()"></select>
+        <select id="stockVarietyInput"></select>
+      </div>
+      <div class="variety-row">
+        <input type="number" id="stockQtyInput" placeholder="入荷数量" min="1">
+        <button onclick="submitHomeStock()" class="variety-btn" style="flex:1;">登録する</button>
+      </div>
+    </div>
+
+    <p class="section-label">スタッフ・人件費</p>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-label">稼働スタッフ</p>
+        <p class="stat-value" id="statStaffCount">-</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">今月の人件費</p>
+        <p class="stat-value" id="expThisMonth">-</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">先月の人件費</p>
+        <p class="stat-value" id="expLastMonth">-</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">年間の人件費</p>
+        <p class="stat-value" id="expYearTotal">-</p>
+      </div>
+    </div>
+
+
+    <p class="section-label">メニュー</p>
+    <div class="menu-list">
+      <a class="menu-item" href="staff-management.html">
+        <span class="menu-icon-badge badge-blue"><i class="ti ti-users" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">スタッフ管理</p>
+          <p class="menu-text-sub">今月の勤怠状況・過去の給与履歴</p>
+        </span>
+      </a>
+      <a class="menu-item" href="https://liff.line.me/2010745560-uXP5sKwZ">
+        <span class="menu-icon-badge badge-teal"><i class="ti ti-calendar-time" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">シフト管理</p>
+          <p class="menu-text-sub">確定・急募・名簿の管理（タイムカード側）</p>
+        </span>
+        <i class="ti ti-external-link" style="color:#8A897E; font-size:16px;" aria-hidden="true"></i>
+      </a>
+      <a class="menu-item" href="sales-management.html">
+        <span class="menu-icon-badge badge-amber"><i class="ti ti-shopping-cart" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">直売所売上集計</p>
+          <p class="menu-text-sub">道の駅しらね・い～なとうぶ</p>
+        </span>
+      </a>
+      <a class="menu-item disabled" href="#">
+        <span class="menu-icon-badge badge-purple"><i class="ti ti-notes" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">メモ機能</p>
+          <p class="menu-text-sub">AIが要点を整理して記録</p>
+        </span>
+        <span class="menu-tag">準備中</span>
+      </a>
+      <a class="menu-item disabled" href="#">
+        <span class="menu-icon-badge badge-green"><i class="ti ti-seeding" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">生育記録</p>
+          <p class="menu-text-sub">写真つきの観察記録</p>
+        </span>
+        <span class="menu-tag">準備中</span>
+      </a>
+      <a class="menu-item disabled" href="#">
+        <span class="menu-icon-badge badge-red"><i class="ti ti-flask" aria-hidden="true"></i></span>
+        <span>
+          <p class="menu-text-title">防除日誌</p>
+          <p class="menu-text-sub">品種別・圃場別の農薬散布記録</p>
+        </span>
+        <span class="menu-tag">準備中</span>
+      </a>
     </div>
   </div>
+
+  <div class="status show loading" id="initStatus">読み込み中...しばらくお待ちください</div>
+
+  <p style="text-align:center; font-size:10px; color:#B5B3A8; margin-top:20px;">v1.09</p>
 </div>
 
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0rdTpNT8b5z53fqmBLt5PXPZTYBnN1FnuZR4Ln2r-ELm4g/exec';
-var LIFF_ID = '2010745560-ZPeVu8OW';
-
-var profile = null;
-
-function tickClock() {
-  var now = new Date();
-  var h = String(now.getHours()).padStart(2, '0');
-  var m = String(now.getMinutes()).padStart(2, '0');
-  var s = String(now.getSeconds()).padStart(2, '0');
-  document.getElementById('clockMain').textContent = h + ':' + m;
-  document.getElementById('clockSec').textContent = ':' + s;
-  var days = ['日','月','火','水','木','金','土'];
-  document.getElementById('dateLabel').textContent =
-    now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + days[now.getDay()] + '）';
-}
-setInterval(tickClock, 1000);
-tickClock();
-
-var statusHideTimer = null;
-function setStatus(type, text, center) {
-  var el = document.getElementById('status');
-  clearTimeout(statusHideTimer);
-  el.className = 'status show ' + type + (center ? ' center' : '');
-  el.innerHTML = '';
-
-  var msg = document.createElement('div');
-  msg.textContent = text;
-  el.appendChild(msg);
-
-  if (type === 'loading') {
-    var track = document.createElement('div');
-    track.className = 'progress-track';
-    var fill = document.createElement('div');
-    fill.className = 'progress-fill';
-    track.appendChild(fill);
-    el.appendChild(track);
-  } else {
-    statusHideTimer = setTimeout(function () { el.classList.remove('show'); }, type === 'error' ? 4500 : 2500);
-  }
-}
-
-function setButtonsDisabled(disabled) {
-  document.getElementById('btnIn').disabled = disabled;
-  document.getElementById('btnBreak').disabled = disabled;
-  document.getElementById('btnOut').disabled = disabled;
-}
-
-// 出退勤の状態に応じて、押せるボタンだけを有効にする
-function applyDayStatus(day, breakUsed, times) {
-  var btnIn = document.getElementById('btnIn');
-  var btnBreak = document.getElementById('btnBreak');
-  var btnOut = document.getElementById('btnOut');
-  if (day === 'none') {
-    btnIn.disabled = false;
-    btnBreak.disabled = true;
-    btnOut.disabled = true;
-  } else if (day === 'working') {
-    btnIn.disabled = true;
-    btnBreak.disabled = !!breakUsed;
-    btnOut.disabled = false;
-  } else { // done
-    btnIn.disabled = true;
-    btnBreak.disabled = true;
-    btnOut.disabled = true;
-  }
-
-  times = times || {};
-  btnIn.textContent = times.clockInTime ? ('出勤　' + times.clockInTime) : '出勤';
-  btnBreak.textContent = breakUsed ? '休憩　済み' : '休憩';
-  btnOut.textContent = times.clockOutTime ? ('退勤　' + times.clockOutTime) : '退勤';
-}
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbznmvwCK8JdC-BsXRjcaTNj6lhm_11EyPW4xv_fSaXmxt6FsZzFFPG2FLk7wsLuSROItA/exec';
+var LIFF_ID = '2010745560-GD4XbdoK';
+var currentUserId = null;
 
 function callServer(payload) {
   return fetch(GAS_URL, {
@@ -334,233 +230,136 @@ function callServer(payload) {
   }).then(function (res) { return res.json(); });
 }
 
-function getLocation() {
-  return new Promise(function (resolve) {
-    if (!navigator.geolocation) { resolve({ lat: '', lng: '' }); return; }
-    navigator.geolocation.getCurrentPosition(
-      function (pos) { resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
-      function () { resolve({ lat: '', lng: '' }); },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  });
-}
-
-function runAction(action, needsLocation) {
-  if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
-  setButtonsDisabled(true);
-  setStatus('loading', '処理中...しばらくお待ちください');
-
-  var locationPromise = needsLocation ? getLocation() : Promise.resolve({ lat: '', lng: '' });
-
-  locationPromise.then(function (loc) {
-    return callServer({
-      action: action,
-      userId: profile.userId,
-      displayName: profile.displayName,
-      lat: loc.lat,
-      lng: loc.lng
-    });
-  }).then(function (result) {
-    setStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-    if (result.status === 'ok') {
-      applyDayStatus(result.day, result.breakUsed, result);
-    } else {
-      // 失敗時は表示とサーバーの状態がずれている可能性があるため、念のため再確認する
-      return callServer({ action: 'checkStatus', userId: profile.userId }).then(function (st) {
-        if (st.status === 'ok') applyDayStatus(st.day, st.breakUsed, st);
-      }).catch(function () {
-        // 状態確認だけ失敗した場合は、誤操作を防ぐためボタンは無効のままにする
-      });
-    }
-  }).catch(function () {
-    setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-    setButtonsDisabled(false); // 打刻自体が失敗した場合のみ、押し直せるようにする
-  });
-}
-
-function showConfirm(message) {
-  return new Promise(function (resolve) {
-    var overlay = document.getElementById('modalOverlay');
-    var okBtn = document.getElementById('modalOk');
-    var cancelBtn = document.getElementById('modalCancel');
-    document.getElementById('modalMessage').textContent = message;
-    overlay.style.display = 'flex';
-
-    function cleanup(result) {
-      overlay.style.display = 'none';
-      okBtn.removeEventListener('click', onOk);
-      cancelBtn.removeEventListener('click', onCancel);
-      resolve(result);
-    }
-    function onOk() { cleanup(true); }
-    function onCancel() { cleanup(false); }
-
-    okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
-  });
-}
-
-function handleClockIn() {
-  showConfirm('出勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockin', true); });
-}
-function handleBreak() {
-  showConfirm('休憩を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('break', false); });
-}
-function handleClockOut() {
-  showConfirm('退勤を記録しますが、よろしいですか？').then(function (ok) { if (ok) runAction('clockout', true); });
-}
-
-function checkTimecard() {
-  if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
-  document.getElementById('btnTimecard').disabled = true;
-  setStatus('loading', 'タイムカードを取得中...しばらくお待ちください');
-
-  callServer({ action: 'getTimecardData', userId: profile.userId }).then(function (result) {
-    document.getElementById('btnTimecard').disabled = false;
-    document.getElementById('status').classList.remove('show');
-    if (result.status === 'ok') {
-      renderTimecard(result);
-    } else {
-      setStatus('error', result.message);
-    }
-  }).catch(function () {
-    document.getElementById('btnTimecard').disabled = false;
-    setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-  });
-}
-
-function renderTimecard(data) {
-  var rowsHtml = data.days.map(function (d) {
-    var isWeekend = (d.weekday === '土' || d.weekday === '日');
-    if (d.noRecord) {
-      return '<tr' + (isWeekend ? ' class="weekend"' : '') + '>' +
-        '<td>' + d.date.slice(5).replace('-', '/') + '(' + d.weekday + ')</td>' +
-        '<td></td><td></td><td></td><td></td>' +
-        '</tr>';
-    }
-    return '<tr' + (isWeekend ? ' class="weekend"' : '') + '>' +
-      '<td>' + d.date.slice(5).replace('-', '/') + '(' + d.weekday + ')</td>' +
-      '<td>' + d.clockIn + '</td>' +
-      '<td>' + d.clockOut + '</td>' +
-      '<td>' + (d.breakUsed ? 'あり' : '') + '</td>' +
-      '<td>' + d.hoursLabel + '</td>' +
-      '</tr>';
-  }).join('');
-
-  var html =
-    '<div class="timecard-box">' +
-    '<div class="timecard-header">' +
-    '<p class="tc-title">タイムカード</p>' +
-    '<p class="tc-sub">' + data.yearMonth + '分</p>' +
-    '</div>' +
-    '<div class="timecard-name">氏名：' + data.name + ' 様</div>' +
-    '<table class="timecard-table">' +
-    '<tr><th>日付</th><th>出勤</th><th>退勤</th><th>休憩</th><th>実働(h)</th></tr>' +
-    rowsHtml +
-    '</table>' +
-    '<div class="timecard-total"><span>現時点の合計実働時間</span><span>' + data.totalHours + '時間</span></div>' +
-    '</div>';
-
-  var container = document.getElementById('timecardCard');
-  container.innerHTML = html;
-  container.style.display = 'block';
-}
-
-// QRコード経由（?action=clockin / ?action=clockout）でアクセスされた場合、
-// 該当するボタンの確認ポップアップを自動で開く
-function getQrAction_() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.has('action')) return params.get('action');
-  if (params.has('liff.state')) {
-    var state = decodeURIComponent(params.get('liff.state'));
-    var stateParams = new URLSearchParams(state.split('?')[1] || '');
-    return stateParams.get('action');
-  }
-  return null;
-}
-
-var qrAutoTriggered_ = false;
-function triggerQrActionIfNeeded_() {
-  if (qrAutoTriggered_) return;
-  var action = getQrAction_();
-  if (action === 'clockin' && !document.getElementById('btnIn').disabled) {
-    qrAutoTriggered_ = true;
-    handleClockIn();
-  } else if (action === 'clockout' && !document.getElementById('btnOut').disabled) {
-    qrAutoTriggered_ = true;
-    handleClockOut();
-  }
-}
-
-function submitName() {
-  if (!profile) { setStatus('error', 'ユーザー情報の取得に失敗しました。アプリを開き直してください。'); return; }
-  var input = document.getElementById('nameInput');
-  var name = input.value.trim();
-  if (!name) { setStatus('error', 'お名前を入力してください。'); document.getElementById('status').classList.add('show'); return; }
-
-  setStatus('loading', '確認中…しばらくお待ちください');
-  document.getElementById('status').classList.add('show');
-
-  callServer({ action: 'registerByName', userId: profile.userId, inputName: name }).then(function (result) {
-    if (result.status === 'ok') {
-      document.getElementById('registerBox').style.display = 'none';
-      document.getElementById('greeting').textContent = result.name + ' さん';
-      setStatus('ok', '初回登録が完了しました！\n今後は自動でログインされます！', true);
-      applyDayStatus(result.day, result.breakUsed, result);
-      triggerQrActionIfNeeded_();
-    } else {
-      setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
-    }
-  }).catch(function () {
-    setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-  });
-}
-
-document.getElementById('greeting').textContent = '';
-
-function withTimeout(promise, ms, stepName) {
+function withTimeout(promise, ms) {
   return Promise.race([
     promise,
-    new Promise(function (_, reject) {
-      setTimeout(function () { reject(new Error('TIMEOUT:' + stepName)); }, ms);
-    })
+    new Promise(function (_, reject) { setTimeout(function () { reject(new Error('TIMEOUT')); }, ms); })
   ]);
 }
 
-if (typeof liff === 'undefined') {
-  setStatus('error', 'LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
-} else {
-  setStatus('loading', '読み込み中…しばらくお待ちください');
-  withTimeout(liff.init({ liffId: LIFF_ID }), 10000, 'STEP1(init)').then(function () {
-    if (!liff.isLoggedIn()) {
-      setStatus('loading', 'ログイン処理中です。少し待ってから操作してください…');
-      liff.login();
-      return Promise.reject('LOGIN_REDIRECT');
+var homeVarietyByCrop = {};
+
+var STORES = ['道の駅しらね', 'い～なとうぶ竜王店', 'い～なとうぶ昭和店'];
+
+function loadHomeVarietyList() {
+  var storeSel = document.getElementById('stockStoreInput');
+  STORES.forEach(function (s) {
+    var opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    storeSel.appendChild(opt);
+  });
+
+  callServer({ action: 'getVarietyList', userId: currentUserId }).then(function (result) {
+    if (result.status !== 'ok') {
+      console.error('品種一覧の取得に失敗：', result.message);
+      return;
     }
-    setStatus('loading', 'ユーザー情報を取得中…しばらくお待ちください');
-    return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
-  }).then(function (p) {
-    profile = p;
-    setStatus('loading', 'ユーザー確認中…しばらくお待ちください');
-    return callServer({ action: 'init', userId: p.userId });
-  }).then(function (result) {
+    homeVarietyByCrop = result.byCrop;
+    var cropSel = document.getElementById('stockCropInput');
+    cropSel.innerHTML = '';
+    result.crops.forEach(function (crop) {
+      var opt = document.createElement('option');
+      opt.value = crop;
+      opt.textContent = crop;
+      cropSel.appendChild(opt);
+    });
+    onStockCropChange();
+  }).catch(function (err) {
+    console.error('通信エラー：', err);
+  });
+}
+
+function onStockCropChange() {
+  var crop = document.getElementById('stockCropInput').value;
+  var varietySel = document.getElementById('stockVarietyInput');
+  varietySel.innerHTML = '';
+  (homeVarietyByCrop[crop] || []).forEach(function (v) {
+    var opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    varietySel.appendChild(opt);
+  });
+}
+
+function submitHomeStock() {
+  var store = document.getElementById('stockStoreInput').value;
+  var variety = document.getElementById('stockVarietyInput').value;
+  var qty = document.getElementById('stockQtyInput').value;
+  if (!store || !variety || !qty) {
+    alert('店舗と品種と数量を入力してください。');
+    return;
+  }
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+  callServer({ action: 'submitStockEntry', userId: currentUserId, date: todayStr, store: store, variety: variety, qty: qty }).then(function (result) {
+    alert(result.message);
     if (result.status === 'ok') {
-      document.getElementById('greeting').textContent = result.name + ' さん';
-      document.getElementById('status').classList.remove('show');
-      applyDayStatus(result.day, result.breakUsed, result);
-      triggerQrActionIfNeeded_();
-    } else if (result.status === 'needName') {
-      document.getElementById('status').classList.remove('show');
-      document.getElementById('registerBox').style.display = 'block';
+      document.getElementById('stockQtyInput').value = '';
+    }
+  });
+}
+
+function loadStats(userId) {
+  callServer({ action: 'getStaffMonthlyStatus', userId: userId }).then(function (result) {
+    if (result.status !== 'ok') return;
+    document.getElementById('statStaffCount').textContent = result.staff.length + '人';
+  });
+
+  callServer({ action: 'getExpenseSummary', userId: userId }).then(function (result) {
+    if (result.status !== 'ok') return;
+    document.getElementById('expThisMonth').textContent = '¥' + result.thisMonth.toLocaleString();
+    document.getElementById('expLastMonth').textContent = '¥' + result.lastMonth.toLocaleString();
+    document.getElementById('expYearTotal').textContent = '¥' + result.yearTotal.toLocaleString();
+  });
+
+  callServer({ action: 'getSalesSummary', userId: userId }).then(function (result) {
+    if (result.status !== 'ok') return;
+    var idMap = { '道の駅しらね': 'shirane', 'い～なとうぶ竜王店': 'ryuo', 'い～なとうぶ昭和店': 'showa' };
+    var today = new Date();
+    var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+    Object.keys(idMap).forEach(function (storeName) {
+      var s = result.stores[storeName];
+      if (!s) return;
+      var prefix = idMap[storeName];
+      ['today', 'yesterday', 'thisMonth', 'lastMonth'].forEach(function (period) {
+        var el = document.getElementById('sales-' + prefix + '-' + period);
+        if (el) el.textContent = '¥' + s[period].toLocaleString();
+      });
+      var link = document.getElementById('sales-' + prefix + '-link');
+      if (link) link.href = 'sales-management.html?tab=progress&store=' + encodeURIComponent(storeName) + '&date=' + todayStr;
+    });
+  });
+}
+
+if (typeof liff === 'undefined') {
+  document.getElementById('initStatus').className = 'status show error';
+  document.getElementById('initStatus').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
+} else {
+  withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
+    if (!liff.isLoggedIn()) { liff.login(); return Promise.reject('LOGIN_REDIRECT'); }
+    return withTimeout(liff.getProfile(), 10000);
+  }).then(function (p) {
+    return callServer({ action: 'checkAdmin', userId: p.userId }).then(function (result) {
+      return { result: result, userId: p.userId };
+    });
+  }).then(function (data) {
+    document.getElementById('initStatus').style.display = 'none';
+    if (data.result.status === 'ok') {
+      document.getElementById('menu').style.display = 'block';
+      currentUserId = data.userId;
+      loadStats(data.userId);
+      loadHomeVarietyList();
     } else {
-      setStatus('error', result.message || 'ご利用が確認できませんでした。管理者にお問い合わせください。');
+      document.getElementById('blockedMessage').style.display = 'block';
     }
   }).catch(function (err) {
-    if (err === 'LOGIN_REDIRECT') return; // ログイン画面へ遷移中なので何もしない
-    var detail = (err && err.message) ? err.message
-               : (typeof err === 'string') ? err
-               : JSON.stringify(err);
-    setStatus('error', '初期化エラー：' + detail + '\n(この文言をそのまま開発者に伝えてください)');
+    if (err === 'LOGIN_REDIRECT') return;
+    var el = document.getElementById('initStatus');
+    el.className = 'status show error';
+    el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
   });
 }
 </script>
