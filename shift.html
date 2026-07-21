@@ -80,6 +80,11 @@
   .status.ok { background: #16A34A; color: #fff; }
   .status.error { background: #DC2626; color: #fff; }
   .status.loading { background: #374151; color: #fff; padding-bottom: 18px; }
+  .processing-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+  .processing-box { background: #fff; border-radius: 16px; padding: 28px 36px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .processing-box p { font-size: 14px; font-weight: 700; color: #223327; margin: 0; }
+  .spinner { width: 36px; height: 36px; border: 4px solid #DCE6DC; border-top-color: #2F6F4E; border-radius: 50%; margin: 0 auto 14px; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
   .status .progress-fill {
     position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
@@ -222,12 +227,19 @@
 
       <button class="btn" id="submitBtn" onclick="submitAll()">内容を確認して提出する</button>
       <div class="status" id="status"></div>
+
+      <div class="processing-overlay" id="processingOverlay" style="display:none;">
+        <div class="processing-box">
+          <div class="spinner"></div>
+          <p id="processingText">処理中...</p>
+        </div>
+      </div>
     </div>
 
-    <div class="status" id="initStatus" style="display:block;">読み込み中...しばらくお待ちください</div>
+    <div class="status" id="initStatus" style="display:none;"></div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.06</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.07</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -287,6 +299,14 @@ var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
 function toISO(d) { return d.toISOString().split('T')[0]; }
 
 var statusHideTimer = null;
+function showProcessing(text) {
+  document.getElementById('processingText').textContent = text;
+  document.getElementById('processingOverlay').style.display = 'flex';
+}
+function hideProcessing() {
+  document.getElementById('processingOverlay').style.display = 'none';
+}
+
 function setPageStatus(type, text) {
   var el = document.getElementById('status');
   clearTimeout(statusHideTimer);
@@ -733,11 +753,12 @@ function confirmSubmit() {
   closeReviewModal();
   if (!entries) return;
 
-  setPageStatus('loading', '送信中...しばらくお待ちください');
+  showProcessing('送信中...しばらくお待ちください');
   document.getElementById('submitBtn').disabled = true;
 
   callServer({ action: 'submitShiftBatch', userId: profile.userId, displayName: profile.displayName, entries: entries })
     .then(function (result) {
+      hideProcessing();
       setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
       document.getElementById('submitBtn').disabled = false;
       if (result.status === 'ok') {
@@ -748,6 +769,7 @@ function confirmSubmit() {
         loadMyShifts();
       }
     }).catch(function () {
+      hideProcessing();
       setPageStatus('error', '通信エラーが発生しました。もう一度お試しください。');
       document.getElementById('submitBtn').disabled = false;
     });
@@ -765,10 +787,14 @@ function loadMyShifts() {
 }
 
 function performCancelShift(token) {
-  setPageStatus('loading', '取り消し中...しばらくお待ちください');
+  showProcessing('取り消し中...しばらくお待ちください');
   callServer({ action: 'cancelShift', userId: profile.userId, token: token }).then(function (result) {
+    hideProcessing();
     setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
     if (result.status === 'ok') loadMyShifts();
+  }).catch(function () {
+    hideProcessing();
+    setPageStatus('error', '通信エラーが発生しました。もう一度お試しください。');
   });
 }
 
@@ -793,6 +819,7 @@ if (typeof liff === 'undefined') {
   document.getElementById('initStatus').className = 'status show error';
   document.getElementById('initStatus').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
 } else {
+  showProcessing('読み込み中...しばらくお待ちください');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
     if (!liff.isLoggedIn()) { liff.login(); return Promise.reject('LOGIN_REDIRECT'); }
     return withTimeout(liff.getProfile(), 10000);
@@ -800,6 +827,7 @@ if (typeof liff === 'undefined') {
     profile = p;
     return callServer({ action: 'shiftInit', userId: p.userId });
   }).then(function (result) {
+    hideProcessing();
     document.getElementById('initStatus').style.display = 'none';
     if (result.status === 'ok') {
       document.getElementById('mainContent').style.display = 'block';
@@ -813,6 +841,7 @@ if (typeof liff === 'undefined') {
     }
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
+    hideProcessing();
     var el = document.getElementById('initStatus');
     el.className = 'status show error';
     el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
