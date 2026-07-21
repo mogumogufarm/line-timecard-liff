@@ -256,7 +256,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.03</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.04</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -368,13 +368,16 @@ function playSuccessSound() {
     var osc = ctx.createOscillator();
     var gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    // 「ピコーン」という上昇チャイムのイメージ：低い音から高い音へ素早く駆け上がる
+    osc.frequency.setValueAtTime(1046, ctx.currentTime);       // ピ（ド）
+    osc.frequency.exponentialRampToValueAtTime(1568, ctx.currentTime + 0.12); // コーン（ソ）へ上昇
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.3);
+    osc.stop(ctx.currentTime + 0.45);
   } catch (e) { /* 再生できない環境では無視する */ }
 }
 
