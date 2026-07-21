@@ -268,7 +268,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.05</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.06</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -585,10 +585,10 @@ function submitName() {
   var name = input.value.trim();
   if (!name) { setStatus('error', 'お名前を入力してください。'); document.getElementById('status').classList.add('show'); return; }
 
-  setStatus('loading', '確認中…しばらくお待ちください');
-  document.getElementById('status').classList.add('show');
+  showProcessing('確認中…しばらくお待ちください');
 
   callServer({ action: 'registerByName', userId: profile.userId, inputName: name }).then(function (result) {
+    hideProcessing();
     if (result.status === 'ok') {
       document.getElementById('registerBox').style.display = 'none';
       document.getElementById('greeting').textContent = result.name + ' さん';
@@ -599,6 +599,7 @@ function submitName() {
       setStatus('error', result.message || '登録に失敗しました。もう一度お試しください。');
     }
   }).catch(function () {
+    hideProcessing();
     setStatus('error', '通信エラーが発生しました。もう一度お試しください。');
   });
 }
@@ -617,20 +618,21 @@ function withTimeout(promise, ms, stepName) {
 if (typeof liff === 'undefined') {
   setStatus('error', 'LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
 } else {
-  setStatus('loading', '読み込み中…しばらくお待ちください');
+  showProcessing('読み込み中…しばらくお待ちください');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000, 'STEP1(init)').then(function () {
     if (!liff.isLoggedIn()) {
-      setStatus('loading', 'ログイン処理中です。少し待ってから操作してください…');
+      showProcessing('ログイン処理中です。少し待ってから操作してください…');
       liff.login();
       return Promise.reject('LOGIN_REDIRECT');
     }
-    setStatus('loading', 'ユーザー情報を取得中…しばらくお待ちください');
+    showProcessing('ユーザー情報を取得中…しばらくお待ちください');
     return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
   }).then(function (p) {
     profile = p;
-    setStatus('loading', 'ユーザー確認中…しばらくお待ちください');
+    showProcessing('ユーザー確認中…しばらくお待ちください');
     return callServer({ action: 'init', userId: p.userId });
   }).then(function (result) {
+    hideProcessing();
     if (result.status === 'ok') {
       document.getElementById('greeting').textContent = result.name + ' さん';
       document.getElementById('status').classList.remove('show');
@@ -644,6 +646,7 @@ if (typeof liff === 'undefined') {
     }
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return; // ログイン画面へ遷移中なので何もしない
+    hideProcessing();
     var detail = (err && err.message) ? err.message
                : (typeof err === 'string') ? err
                : JSON.stringify(err);
