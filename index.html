@@ -256,7 +256,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.02</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.03</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -362,9 +362,33 @@ function getLocation() {
   });
 }
 
+function playSuccessSound() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (e) { /* 再生できない環境では無視する */ }
+}
+
+function vibrateSuccess() {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(120); } catch (e) { /* 対応していない環境では無視する */ }
+  }
+}
+
 function flashButtonSuccess(btnId) {
   var btn = document.getElementById(btnId);
   if (!btn) return;
+  playSuccessSound();
+  vibrateSuccess();
   btn.classList.remove('btn-success-flash');
   void btn.offsetWidth; // アニメーションを確実に再生させるためのリフロー
   btn.classList.add('btn-success-flash');
