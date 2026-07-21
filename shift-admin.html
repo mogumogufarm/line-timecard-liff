@@ -107,6 +107,11 @@
   .status.ok { background: #16A34A; color: #fff; }
   .status.error { background: #DC2626; color: #fff; }
   .status.loading { background: #374151; color: #fff; padding-bottom: 16px; }
+  .processing-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+  .processing-box { background: #fff; border-radius: 16px; padding: 28px 36px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .processing-box p { font-size: 14px; font-weight: 700; color: #223327; margin: 0; }
+  .spinner { width: 36px; height: 36px; border: 4px solid #DCE6DC; border-top-color: #2F6F4E; border-radius: 50%; margin: 0 auto 14px; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
   .status .progress-fill {
     position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
@@ -129,8 +134,15 @@
     <p style="font-weight:700; color:#B45309;">この画面は管理者のみ利用できます</p>
   </div>
 
-  <div id="initStatusCard" class="card">
-    <div class="status show loading">読み込み中...しばらくお待ちください</div>
+  <div id="initStatusCard" class="card" style="display:none;">
+    <div class="status"></div>
+  </div>
+
+  <div class="processing-overlay" id="processingOverlay" style="display:none;">
+    <div class="processing-box">
+      <div class="spinner"></div>
+      <p id="processingText">処理中...</p>
+    </div>
   </div>
 
   <div id="mainContent" style="display:none;">
@@ -195,7 +207,7 @@
     </div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.05</p>
+  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:20px;">v1.06</p>
 </div>
 
 <script>
@@ -433,6 +445,14 @@ function renderCalendar() {
 }
 
 var statusHideTimers = {};
+function showProcessing(text) {
+  document.getElementById('processingText').textContent = text;
+  document.getElementById('processingOverlay').style.display = 'flex';
+}
+function hideProcessing() {
+  document.getElementById('processingOverlay').style.display = 'none';
+}
+
 function setToast(elId, type, text) {
   var el = document.getElementById(elId);
   clearTimeout(statusHideTimers[elId]);
@@ -456,16 +476,18 @@ function setToast(elId, type, text) {
 }
 
 function decideShift(token, kind, startTime, endTime) {
-  setToast('actionStatus', 'loading', '処理中...しばらくお待ちください');
+  showProcessing('処理中...しばらくお待ちください');
 
   var action = (kind === 'confirm') ? 'adminConfirmShift' : 'adminRejectShift';
   var payload = { action: action, userId: profile.userId, token: token };
   if (kind === 'confirm') { payload.startTime = startTime; payload.endTime = endTime; }
 
   callServer(payload).then(function (result) {
+    hideProcessing();
     setToast('actionStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
     if (result.status === 'ok') loadAdminData();
   }).catch(function () {
+    hideProcessing();
     setToast('actionStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
   });
 }
@@ -480,12 +502,14 @@ function sendUrgentCall() {
     return;
   }
 
-  setToast('urgentStatus', 'loading', '送信中...しばらくお待ちください');
+  showProcessing('送信中...しばらくお待ちください');
 
   callServer({ action: 'adminSendUrgentCall', userId: profile.userId, shiftDate: date, startTime: start, endTime: end })
     .then(function (result) {
+      hideProcessing();
       setToast('urgentStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
     }).catch(function () {
+      hideProcessing();
       setToast('urgentStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
     });
 }
@@ -557,22 +581,30 @@ function addRosterEntry() {
     return;
   }
 
-  setToast('rosterStatus', 'loading', '追加中...しばらくお待ちください');
+  showProcessing('追加中...しばらくお待ちください');
   callServer({ action: 'adminAddRosterEntry', userId: profile.userId, name: name, wage: wage }).then(function (result) {
+    hideProcessing();
     setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
     if (result.status === 'ok') {
       document.getElementById('rosterName').value = '';
       document.getElementById('rosterWage').value = '';
       loadRoster();
     }
+  }).catch(function () {
+    hideProcessing();
+    setToast('rosterStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
   });
 }
 
 function deleteRosterEntry(row, name) {
-  setToast('rosterStatus', 'loading', '削除中...しばらくお待ちください');
+  showProcessing('削除中...しばらくお待ちください');
   callServer({ action: 'adminDeleteRosterEntry', userId: profile.userId, row: row }).then(function (result) {
+    hideProcessing();
     setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
     if (result.status === 'ok') loadRoster();
+  }).catch(function () {
+    hideProcessing();
+    setToast('rosterStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
   });
 }
 
@@ -595,9 +627,11 @@ fillHourSelect(document.getElementById('urgentStart'), '09:00');
 fillHourSelect(document.getElementById('urgentEnd'), '13:00');
 
 if (typeof liff === 'undefined') {
+  document.getElementById('initStatusCard').style.display = 'block';
   document.querySelector('#initStatusCard .status').className = 'status show error';
   document.querySelector('#initStatusCard .status').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
 } else {
+  showProcessing('読み込み中...しばらくお待ちください');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
     if (!liff.isLoggedIn()) { liff.login(); return Promise.reject('LOGIN_REDIRECT'); }
     return withTimeout(liff.getProfile(), 10000);
@@ -605,6 +639,7 @@ if (typeof liff === 'undefined') {
     profile = p;
     return callServer({ action: 'adminListShifts', userId: p.userId });
   }).then(function (result) {
+    hideProcessing();
     document.getElementById('initStatusCard').style.display = 'none';
     if (result.status !== 'ok') {
       document.getElementById('blockedCard').style.display = 'block';
@@ -620,6 +655,8 @@ if (typeof liff === 'undefined') {
     loadRoster();
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
+    hideProcessing();
+    document.getElementById('initStatusCard').style.display = 'block';
     var el = document.querySelector('#initStatusCard .status');
     el.className = 'status show error';
     el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
