@@ -12,8 +12,8 @@
   body {
     margin: 0;
     font-family: 'Noto Sans JP', sans-serif;
-    background: linear-gradient(180deg, #EEF4EC 0%, #F4F6F8 220px);
-    color: #223327;
+    background: linear-gradient(180deg, #EFE8D8 0%, #F7F3E9 220px);
+    color: #2E3B22;
     min-height: 100vh;
   }
   .wrap {
@@ -27,16 +27,16 @@
     font-weight: 700;
     letter-spacing: 0.04em;
     margin: 0 0 4px;
-    color: #2F5D3A;
+    color: #2E3B22;
   }
   .site-subtitle {
     font-size: 12px;
-    color: #6B8F73;
+    color: #7A7256;
     letter-spacing: 0.15em;
     margin: 0 0 20px;
   }
   .card {
-    background: #fff;
+    background: #F7F3E9;
     border-radius: 20px;
     padding: 28px 20px 24px;
     box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08);
@@ -44,12 +44,12 @@
   .register-heading {
     font-size: 16px;
     font-weight: 700;
-    color: #B45309;
+    color: #8A5A2A;
     margin: 0 0 8px;
   }
   .location-notice {
     font-size: 12px;
-    color: #94A3B8;
+    color: #9B8B5E;
     margin: 24px 0 0;
     line-height: 1.6;
   }
@@ -57,14 +57,14 @@
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.18em;
-    color: #7C9884;
+    color: #7A7256;
     margin: 0 0 10px;
   }
   .hero-date {
     font-size: 15px;
     font-weight: 400;
     letter-spacing: 0.06em;
-    color: #8AA391;
+    color: #A69B7A;
     margin: 0 0 6px;
   }
   .hero-clock {
@@ -73,33 +73,33 @@
     font-size: 56px;
     letter-spacing: 0.03em;
     line-height: 1;
-    color: #1E2B22;
+    color: #2E3B22;
     margin: 0 0 26px;
   }
   .hero-clock-sec {
     font-size: 22px;
     font-weight: 300;
-    color: #A9BDAF;
+    color: #A69B7A;
     margin-left: 6px;
   }
   .timecard-box {
-    margin-top: 16px; border: 1px solid #DCE6DC; border-radius: 12px; overflow: hidden; background: #fff;
+    margin-top: 16px; border: 1px solid #D6CBAA; border-radius: 12px; overflow: hidden; background: #F7F3E9;
   }
   .timecard-header {
-    background: #2F6F4E; color: #fff; padding: 10px 14px; text-align: center;
+    background: #3E5A1F; color: #fff; padding: 10px 14px; text-align: center;
   }
   .timecard-header .tc-title { font-size: 15px; font-weight: 700; letter-spacing: 2px; margin: 0; }
   .timecard-header .tc-sub { font-size: 11px; margin: 2px 0 0; opacity: 0.85; }
-  .timecard-name { padding: 8px 14px; font-size: 13px; color: #223327; border-bottom: 1px solid #E2E8DE; }
+  .timecard-name { padding: 8px 14px; font-size: 13px; color: #2E3B22; border-bottom: 1px solid #D6CBAA; }
   .timecard-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .timecard-table th {
-    background: #EAF2EC; color: #2F5D3A; padding: 6px 3px; border: 1px solid #DCE6DC; font-weight: 700;
+    background: #F7F3E9; color: #2E3B22; padding: 6px 3px; border: 1px solid #D6CBAA; font-weight: 700;
   }
-  .timecard-table td { padding: 6px 3px; border: 1px solid #E2E8DE; text-align: center; }
-  .timecard-table tr.weekend td:first-child { color: #C9822A; }
+  .timecard-table td { padding: 6px 3px; border: 1px solid #D6CBAA; text-align: center; }
+  .timecard-table tr.weekend td:first-child { color: #8A5A2A; }
   .timecard-total {
     display: flex; justify-content: space-between; padding: 10px 14px;
-    font-size: 13px; font-weight: 700; background: #FFF7E6; color: #8A5A0B;
+    font-size: 13px; font-weight: 700; background: #F0DEB8; color: #8A5A2A;
   }
   .btn {
     display: flex;
@@ -120,9 +120,9 @@
   }
   .btn:active { opacity: 0.8; transform: scale(0.98); }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-  .btn-in   { background: #16A34A; }
-  .btn-break{ background: #F59E0B; }
-  .btn-out  { background: #DC2626; }
+  .btn-in   { background: #3E5A1F; }
+  .btn-break{ background: #B08628; }
+  .btn-out  { background: #8B3A2E; }
   @keyframes btnSuccessPulse {
     0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
     70%  { box-shadow: 0 0 0 18px rgba(255,255,255,0); }
@@ -157,18 +157,18 @@
   }
   .status.show { display: block; }
   .status.center { text-align: center; }
-  .status.ok    { background: #16A34A; color: #fff; }
-  .status.error { background: #DC2626; color: #fff; }
-  .status.loading { background: #374151; color: #fff; padding-bottom: 18px; }
+  .status.ok    { background: #3E5A1F; color: #fff; }
+  .status.error { background: #8B3A2E; color: #fff; }
+  .status.loading { background: #4A4436; color: #fff; padding-bottom: 18px; }
   .processing-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-  .processing-box { background: #fff; border-radius: 16px; padding: 28px 36px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-  .processing-box p { font-size: 14px; font-weight: 700; color: #223327; margin: 0; }
-  .spinner { width: 36px; height: 36px; border: 4px solid #DCE6DC; border-top-color: #2F6F4E; border-radius: 50%; margin: 0 auto 14px; animation: spin 0.8s linear infinite; }
+  .processing-box { background: #F7F3E9; border-radius: 16px; padding: 28px 36px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .processing-box p { font-size: 14px; font-weight: 700; color: #2E3B22; margin: 0; }
+  .spinner { width: 36px; height: 36px; border: 4px solid #D6CBAA; border-top-color: #3E5A1F; border-radius: 50%; margin: 0 auto 14px; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
   .status .progress-fill {
     position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
-    background: #fff; border-radius: 2px;
+    background: #F7F3E9; border-radius: 2px;
     animation: progressSlide 1.1s ease-in-out infinite;
   }
   @keyframes progressSlide {
@@ -178,12 +178,12 @@
   .register-box {
     padding: 4px 0 8px;
   }
-  .register-box p { margin: 0 0 12px; font-size: 14px; color: #334155; }
+  .register-box p { margin: 0 0 12px; font-size: 14px; color: #6B6048; }
   .register-box input {
     width: 100%;
     padding: 13px;
     font-size: 16px;
-    border: 1px solid #CBD5E1;
+    border: 1px solid #D6CBAA;
     border-radius: 10px;
     margin-bottom: 12px;
     font-family: inherit;
@@ -200,7 +200,7 @@
     z-index: 1000;
   }
   .modal-box {
-    background: #fff;
+    background: #F7F3E9;
     border-radius: 18px;
     padding: 26px 22px 20px;
     max-width: 320px;
@@ -211,7 +211,7 @@
   .modal-box p {
     font-size: 16px;
     font-weight: 500;
-    color: #223327;
+    color: #2E3B22;
     margin: 0 0 22px;
     line-height: 1.6;
   }
@@ -229,8 +229,8 @@
     font-family: inherit;
     cursor: pointer;
   }
-  .modal-btn.cancel { background: #E5E7EB; color: #374151; }
-  .modal-btn.ok { background: #16A34A; color: #fff; }
+  .modal-btn.cancel { background: #D6CBAA; color: #4A4436; }
+  .modal-btn.ok { background: #3E5A1F; color: #fff; }
 </style>
 </head>
 <body>
@@ -262,13 +262,13 @@
     <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
     <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
 
-    <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#4B5563; margin-top:10px;">今月のタイムカードを確認する</button>
+    <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#6B6048; margin-top:10px;">今月のタイムカードを確認する</button>
 
     <div id="timecardCard" style="display:none;"></div>
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#B8C2BC; margin-top:10px;">v1.06</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.07</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
