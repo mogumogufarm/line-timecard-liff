@@ -270,7 +270,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.08</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.09</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -578,6 +578,12 @@ function triggerQrActionIfNeeded_() {
   } else if (action === 'clockout' && !document.getElementById('btnOut').disabled) {
     qrAutoTriggered_ = true;
     handleClockOut();
+  } else if (action === 'break' && !document.getElementById('btnBreak').disabled) {
+    qrAutoTriggered_ = true;
+    handleBreak();
+  } else if (action === 'viewTimecard') {
+    qrAutoTriggered_ = true;
+    checkTimecard();
   }
 }
 
