@@ -6,6 +6,7 @@
 <title>勤怠打刻</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   * { box-sizing: border-box; }
@@ -105,24 +106,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     width: 100%;
     padding: 18px;
     margin-bottom: 12px;
-    border: none;
     border-radius: 16px;
     font-size: 17px;
     font-weight: 700;
     font-family: inherit;
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
     transition: opacity 0.15s, transform 0.1s;
   }
+  .btn i { font-size: 22px; }
   .btn:active { opacity: 0.8; transform: scale(0.98); }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-  .btn-in   { background: #3E5A1F; }
-  .btn-break{ background: #B08628; }
-  .btn-out  { background: #8B3A2E; }
+  .btn-in   { background: #4C7A2E; border: 2px solid #375A1F; }
+  .btn-break{ background: #C08A2E; border: 2px solid #8A5F1E; }
+  .btn-out  { background: #A6462E; border: 2px solid #7A331E; }
   @keyframes btnSuccessPulse {
     0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
     70%  { box-shadow: 0 0 0 18px rgba(255,255,255,0); }
@@ -258,9 +260,9 @@
     <p class="hero-date" id="dateLabel"></p>
     <div class="hero-clock"><span id="clockMain">--:--</span><span id="clockSec" class="hero-clock-sec"></span></div>
 
-    <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled>出勤</button>
-    <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled>休憩</button>
-    <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled>退勤</button>
+    <button class="btn btn-in" id="btnIn" onclick="handleClockIn()" disabled><i class="ti ti-login-2" aria-hidden="true"></i><span class="btn-label">出勤</span></button>
+    <button class="btn btn-break" id="btnBreak" onclick="handleBreak()" disabled><i class="ti ti-coffee" aria-hidden="true"></i><span class="btn-label">休憩</span></button>
+    <button class="btn btn-out" id="btnOut" onclick="handleClockOut()" disabled><i class="ti ti-logout-2" aria-hidden="true"></i><span class="btn-label">退勤</span></button>
 
     <button class="btn" id="btnTimecard" onclick="checkTimecard()" style="background:#6B6048; margin-top:10px;">今月のタイムカードを確認する</button>
 
@@ -268,7 +270,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.07</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.08</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -350,9 +352,9 @@ function applyDayStatus(day, breakUsed, times) {
   }
 
   times = times || {};
-  btnIn.textContent = times.clockInTime ? ('出勤　' + times.clockInTime) : '出勤';
-  btnBreak.textContent = breakUsed ? '休憩　済み' : '休憩';
-  btnOut.textContent = times.clockOutTime ? ('退勤　' + times.clockOutTime) : '退勤';
+  btnIn.querySelector('.btn-label').textContent = times.clockInTime ? ('出勤　' + times.clockInTime) : '出勤';
+  btnBreak.querySelector('.btn-label').textContent = breakUsed ? '休憩　済み' : '休憩';
+  btnOut.querySelector('.btn-label').textContent = times.clockOutTime ? ('退勤　' + times.clockOutTime) : '退勤';
 }
 
 function callServer(payload) {
