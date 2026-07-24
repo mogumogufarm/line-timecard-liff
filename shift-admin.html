@@ -206,7 +206,7 @@
     </div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.09</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.10</p>
 </div>
 
 <script>
@@ -633,11 +633,17 @@ if (typeof liff === 'undefined') {
     loadRoster();
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
+    var msg = (err && err.message) ? err.message : String(err);
+    if (msg.indexOf('revoked') !== -1 || msg.indexOf('token') !== -1 || msg.indexOf('expired') !== -1) {
+      try { liff.logout(); } catch (e) {}
+      window.location.reload();
+      return;
+    }
     hideProcessing();
     document.getElementById('initStatusCard').style.display = 'block';
     var el = document.querySelector('#initStatusCard .status');
     el.className = 'status show error';
-    el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
+    el.textContent = '初期化エラー：' + msg;
   });
 }
 </script>
