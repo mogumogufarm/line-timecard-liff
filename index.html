@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<link rel="stylesheet" href="common.css">
+<script src="common.js"></script>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -162,11 +164,6 @@
   .status.ok    { background: #3E5A1F; color: #fff; }
   .status.error { background: #8B3A2E; color: #fff; }
   .status.loading { background: #4A4436; color: #fff; padding-bottom: 18px; }
-  .processing-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-  .processing-box { background: #F7F3E9; border-radius: 16px; padding: 28px 36px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-  .processing-box p { font-size: 14px; font-weight: 700; color: #2E3B22; margin: 0; }
-  .spinner { width: 36px; height: 36px; border: 4px solid #D6CBAA; border-top-color: #3E5A1F; border-radius: 50%; margin: 0 auto 14px; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
   .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
   .status .progress-fill {
     position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
@@ -270,7 +267,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.09</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.11</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -288,6 +285,7 @@ var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0r
 var LIFF_ID = '2010745560-ZPeVu8OW';
 
 var profile = null;
+var currentIdToken = null;
 
 function tickClock() {
   var now = new Date();
@@ -357,14 +355,6 @@ function applyDayStatus(day, breakUsed, times) {
   btnOut.querySelector('.btn-label').textContent = times.clockOutTime ? ('退勤　' + times.clockOutTime) : '退勤';
 }
 
-function callServer(payload) {
-  return fetch(GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  }).then(function (res) { return res.json(); });
-}
-
 function getLocation() {
   return new Promise(function (resolve) {
     if (!navigator.geolocation) { resolve({ lat: '', lng: '' }); return; }
@@ -419,14 +409,6 @@ function flashButtonSuccess(btnId) {
     btn.classList.remove('btn-success-flash');
     if (check.parentNode) check.parentNode.removeChild(check);
   }, 1400);
-}
-
-function showProcessing(text) {
-  document.getElementById('processingText').textContent = text;
-  document.getElementById('processingOverlay').style.display = 'flex';
-}
-function hideProcessing() {
-  document.getElementById('processingOverlay').style.display = 'none';
 }
 
 function runAction(action, needsLocation) {
@@ -614,15 +596,6 @@ function submitName() {
 
 document.getElementById('greeting').textContent = '';
 
-function withTimeout(promise, ms, stepName) {
-  return Promise.race([
-    promise,
-    new Promise(function (_, reject) {
-      setTimeout(function () { reject(new Error('TIMEOUT:' + stepName)); }, ms);
-    })
-  ]);
-}
-
 if (typeof liff === 'undefined') {
   setStatus('error', 'LIFF SDKの読み込みに失敗しました。通信環境をご確認のうえ開き直してください。');
 } else {
@@ -637,6 +610,7 @@ if (typeof liff === 'undefined') {
     return withTimeout(liff.getProfile(), 10000, 'STEP3(getProfile)');
   }).then(function (p) {
     profile = p;
+    currentIdToken = liff.getIDToken();
     showProcessing('ユーザー確認中…しばらくお待ちください');
     return callServer({ action: 'init', userId: p.userId });
   }).then(function (result) {
