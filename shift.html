@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>シフト希望提出</title>
+<title>シフト管理</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -19,71 +19,98 @@
     background: linear-gradient(180deg, #EFE8D8 0%, #F7F3E9 220px);
     color: #2E3B22;
     min-height: 100vh;
+    overflow-x: hidden;
   }
-  .wrap { max-width: 480px; margin: 0 auto; padding: 32px 16px 110px; text-align: center; }
-  .site-title { font-size: 21px; font-weight: 700; letter-spacing: 0.04em; margin: 0 0 4px; color: #2E3B22; }
-  .site-subtitle { font-size: 12px; color: #7A7256; letter-spacing: 0.15em; margin: 0 0 20px; }
-  .card { background: #F7F3E9; border-radius: 20px; padding: 24px 18px; box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08); text-align: left; }
-  .card-title { font-size: 15px; font-weight: 700; color: #2E3B22; margin: 0 0 4px; text-align: center; }
-  .card-sub { font-size: 12px; color: #7A7256; margin: 0 0 16px; text-align: center; }
-  .tip-box {
-    background: #F0DEB8; border: 1px solid #E0CC9E; color: #8A5A2A;
-    border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 500;
-    text-align: center; margin: 0 0 16px;
+  .wrap { max-width: 520px; margin: 0 auto; padding: 28px 14px 40px; }
+  .site-title { font-size: 20px; font-weight: 700; text-align: center; margin: 0 0 4px; color: #2E3B22; }
+  .top-nav { text-align: left; margin-bottom: 10px; }
+  .top-nav a { font-size: 12px; color: #7A7256; text-decoration: none; }
+  .site-subtitle { font-size: 12px; color: #7A7256; text-align: center; letter-spacing: 0.1em; margin: 0 0 18px; }
+  .card { background: #F7F3E9; border-radius: 18px; padding: 18px; box-shadow: 0 4px 20px rgba(47, 93, 58, 0.08); margin-bottom: 14px; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .summary-box { background: #F7F3E9; border: 1px solid #D6CBAA; border-radius: 12px; padding: 12px; text-align: center; }
+  .summary-label { font-size: 11px; color: #7A7256; margin: 0 0 4px; }
+  .section-title {
+    font-size: 15px; font-weight: 700; color: #2E3B22;
+    margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid #F7F3E9;
   }
-  .greeting { font-size: 13px; color: #7A7256; text-align: center; margin-bottom: 14px; }
-  .day-row { border: 1px solid #D6CBAA; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
-  .day-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; color: #2E3B22; }
-  .day-label.weekend { color: #8A5A2A; }
-  .chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .chip {
-    padding: 9px 4px; font-size: 12px; text-align: center; border-radius: 8px;
-    border: 1px solid #D6CBAA; background: #F7F3E9; color: #6B6048; cursor: pointer; font-family: inherit;
+  .summary-value { font-size: 18px; font-weight: 700; color: #2E3B22; margin: 0; }
+
+  .tabs { display: flex; border: 1px solid #D6CBAA; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+  .tab-btn { flex: 1; padding: 10px; border: none; background: #F7F3E9; color: #7A7256; font-family: inherit; font-size: 14px; cursor: pointer; }
+  .tab-btn.active { background: #3E5A1F; color: #fff; font-weight: 700; }
+
+  .date-group-title { font-size: 13px; font-weight: 700; color: #7A7256; margin: 14px 0 6px; }
+  .date-group-title:first-child { margin-top: 0; }
+  .entry-row { border: 1px solid #D6CBAA; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .entry-top { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .entry-name { font-weight: 700; }
+  .entry-sub { font-size: 12px; color: #A69B7A; }
+  .status-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+  .status-tag.confirmed { background: #F7F3E9; color: #2E3B22; }
+  .status-tag.rejected { background: #F0DAD0; color: #6B2A1E; }
+  .status-tag.pending { background: #F0DEB8; color: #8A5A2A; }
+
+  .decide-row { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+  .decide-row select { flex: 1; padding: 8px; font-size: 13px; border-radius: 8px; border: 1px solid #D6CBAA; font-family: inherit; }
+  .decide-row button { padding: 8px 12px; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; color: #fff; }
+  .btn-confirm { background: #3E5A1F; }
+  .btn-reject { background: #8B3A2E; }
+
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 46px; gap: 4px; }
+  .cal-head { font-size: 11px; color: #A69B7A; text-align: center; }
+  .cal-day {
+    border: 1px solid #D6CBAA; border-radius: 8px; padding: 3px;
+    font-size: 11px; text-align: left; cursor: pointer; background: #F7F3E9;
+    overflow: hidden;
   }
-  .chip.selected { background: #3E5A1F; border-color: #3E5A1F; color: #fff; font-weight: 700; }
-  .custom-time { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-  .custom-time select { flex: 1; padding: 8px; font-size: 13px; border-radius: 8px; border: 1px solid #D6CBAA; font-family: inherit; }
-  .custom-time span { font-size: 12px; color: #7A7256; }
-  .btn {
-    display: block; width: 100%; padding: 16px; margin-top: 16px; border: none; border-radius: 14px;
-    font-size: 16px; font-weight: 700; font-family: inherit; color: #fff; background: #3E5A1F; cursor: pointer;
+  .cal-day.has-confirmed { background: #F7F3E9; border-color: #E3ECD3; }
+  .cal-day.pending-only { background: #F0DEB8; border-color: #E0CC9E; }
+  .cal-day-blank { aspect-ratio: 1; }
+  .cal-day.selected { border: 2px solid #3E5A1F; }
+  .cal-count { font-size: 10px; font-weight: 700; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .legend { display: flex; gap: 14px; font-size: 11px; color: #7A7256; margin: 8px 0 0; }
+  .grid-table { border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+  .grid-table th, .grid-table td { border: 1px solid #D6CBAA; padding: 6px 8px; text-align: center; }
+  .grid-table th { background: #3E5A1F; color: #fff; font-weight: 700; }
+  .grid-table td.name-cell { text-align: left; font-weight: 700; background: #F7F3E9; position: sticky; left: 0; }
+  .grid-table th.name-head { position: sticky; left: 0; z-index: 2; }
+  .grid-table td.weekend-sat { background: #F7F3E9; }
+  .grid-table td.weekend-sun { background: #F0DAD0; }
+  .grid-table td.shift-confirmed { background: #F7F3E9; color: #3E5A1F; font-weight: 700; }
+  .grid-table td.shift-off { color: #D6CBAA; }
+  .grid-table tr.total-row td { background: #F7F3E9; font-weight: 700; }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .urgent-card input, .urgent-card select,
+  .card input[type="text"], .card input[type="number"] {
+    padding: 10px; font-size: 13px; border-radius: 8px; border: 1px solid #D6CBAA; font-family: inherit;
   }
-  .btn:disabled { opacity: 0.4; }
-  #submitBtn {
+  .urgent-row { display: flex; gap: 6px; margin-bottom: 8px; }
+  .urgent-row input, .urgent-row select { min-width: 0; }
+  .roster-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #D6CBAA; }
+  .urgent-row select { flex: 1; }
+  .btn-urgent { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; color: #fff; background: #8B3A2E; font-family: inherit; cursor: pointer; }
+
+  .status {
     position: fixed;
     bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 32px);
-    max-width: 448px;
-    z-index: 1500;
-    margin-top: 0;
-    box-shadow: 0 6px 18px rgba(47, 111, 78, 0.35);
-  }
-  #submitBtn.has-pending { background: #8A5A2A; box-shadow: 0 6px 18px rgba(217, 119, 6, 0.4); }
-  #submitBtn.no-pending { background: #9B8B5E; box-shadow: none; }
-  .status {
-    position: fixed;
-    bottom: 84px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 32px);
-    max-width: 448px;
+    max-width: 480px;
     z-index: 2000;
-    padding: 14px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.6;
-    display: none;
-    white-space: pre-line;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.25);
-    overflow: hidden;
+    padding: 12px 14px; border-radius: 10px; font-size: 14px; font-weight: 500;
+    line-height: 1.6; display: none; white-space: pre-line; overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   }
   .status.show { display: block; }
   .status.ok { background: #3E5A1F; color: #fff; }
   .status.error { background: #8B3A2E; color: #fff; }
-  .status.loading { background: #4A4436; color: #fff; padding-bottom: 18px; }
+  .status.loading { background: #4A4436; color: #fff; padding-bottom: 16px; }
   .status .progress-track { position: absolute; left: 0; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.25); }
   .status .progress-fill {
     position: absolute; bottom: 0; left: -40%; height: 4px; width: 40%;
@@ -94,214 +121,318 @@
     0% { left: -40%; }
     100% { left: 100%; }
   }
-  .status .progress-track {
-    height: 4px; background: rgba(255,255,255,0.25); border-radius: 3px; margin-top: 10px; overflow: hidden;
-  }
-  .status .progress-fill {
-    height: 100%; width: 35%; background: #F7F3E9; border-radius: 3px;
-    animation: statusProgress 1.1s ease-in-out infinite;
-  }
-  @keyframes statusProgress {
-    0% { margin-left: -35%; }
-    100% { margin-left: 100%; }
-  }
-
-  .tabs { display: flex; border: 1px solid #D6CBAA; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-  .tab-btn { flex: 1; padding: 10px; border: none; background: #F7F3E9; color: #7A7256; font-family: inherit; font-size: 14px; cursor: pointer; }
-  .tab-btn.active { background: #3E5A1F; color: #fff; font-weight: 700; }
-
-  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .cal-nav button { border: none; background: #F7F3E9; color: #2E3B22; border-radius: 8px; padding: 6px 12px; font-family: inherit; font-size: 14px; cursor: pointer; }
-  .cal-nav button:disabled { opacity: 0.3; cursor: default; }
-  .cal-month-label { font-size: 14px; font-weight: 700; }
-  .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 46px; gap: 4px; }
-  .cal-head { font-size: 11px; color: #A69B7A; text-align: center; }
-  .cal-day {
-    border: 1px solid #D6CBAA; border-radius: 8px; padding: 3px;
-    font-size: 11px; text-align: left; background: #F7F3E9; color: #2E3B22;
-    overflow: hidden;
-  }
-  .cal-type-label { font-size: 9px; font-weight: 700; color: #3E5A1F; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cal-day.enabled { cursor: pointer; }
-  .cal-day.disabled { color: #D6CBAA; background: #F7F3E9; }
-  .cal-day.chosen { background: #F7F3E9; border-color: #3E5A1F; }
-  .cal-day.cal-status-pending { background: #F0DEB8; border-color: #E0CC9E; }
-  .cal-day.cal-status-pending .cal-type-label { color: #8A5A2A; }
-  .cal-day.cal-status-confirmed { background: #F7F3E9; border-color: #E3ECD3; }
-  .cal-day.cal-status-confirmed .cal-type-label { color: #3E5A1F; }
-  .cal-day.cal-status-rejected { background: #F0DAD0; border-color: #F0DAD0; color: #C2AA9A; }
-  .cal-day.cal-status-rejected .cal-type-label { color: #D08A7A; }
-  .cal-day-blank { aspect-ratio: 1; }
-
-  .legend-row { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: #7A7256; margin: 0 0 12px; }
-  .legend-row .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 3px; vertical-align: middle; }
-  .pending-badge {
-    background: #F0DEB8; color: #6B4A1A; border: 1px solid #E0CC9E;
-    border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 700;
-    text-align: center; margin-bottom: 14px;
-  }
-  .dot-empty { background: #F7F3E9; border: 1px solid #D6CBAA; }
-  .dot-pending { background: #F0DEB8; border: 1px solid #E0CC9E; }
-  .dot-confirmed { background: #F7F3E9; border: 1px solid #E3ECD3; }
-  .dot-rejected { background: #F0DAD0; border: 1px solid #F0DAD0; }
-
-  .day-row-submitted { background: #F7F3E9; }
-  .day-submitted-info { margin: 0; font-size: 13px; font-weight: 700; }
-  .edit-pill {
-    background: #3E5A1F; color: #fff; border: none; border-radius: 999px;
-    padding: 5px 14px; font-size: 11px; font-weight: 700; font-family: inherit;
-    cursor: pointer; white-space: nowrap; margin-left: 8px;
-  }
-  .day-submitted-info.status-pending { color: #8A5A2A; }
-  .day-submitted-info.status-confirmed { color: #3E5A1F; }
-  .day-submitted-info.status-rejected { color: #D08A7A; }
-
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(20, 30, 22, 0.5);
-    display: none; align-items: center; justify-content: center; padding: 24px; z-index: 1000;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box { background: #F7F3E9; border-radius: 18px; padding: 22px 20px; max-width: 320px; width: 100%; box-shadow: 0 10px 34px rgba(0,0,0,0.22); text-align: center; }
-  .modal-box p.modal-title { font-size: 15px; font-weight: 700; margin: 0 0 14px; color: #2E3B22; }
-  .review-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed #D6CBAA; }
-  .review-list-wrap { position: relative; margin-bottom: 6px; }
-  .review-fade {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 28px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95));
-    pointer-events: none;
-  }
-  .modal-buttons-row { display: flex; gap: 8px; margin-top: 10px; }
-  .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
-  .modal-btn.clear { background: #F7F3E9; color: #7A7256; }
-  .modal-btn.close { background: #D6CBAA; color: #4A4436; }
-  .modal-btn.decide { background: #3E5A1F; color: #fff; }
-  .modal-btn.decide:disabled { opacity: 0.4; cursor: default; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="top-nav"><a href="https://liff.line.me/2010745560-GD4XbdoK">← 運営管理メニューへ戻る</a></div>
   <h1 class="site-title">🌾 もぐもぐ農園</h1>
-  <p class="site-subtitle">シフト希望提出</p>
+  <p class="site-subtitle">シフト管理（管理者専用）</p>
 
-  <div class="card">
-    <div id="blockedMessage" style="display:none; text-align:center; padding: 20px 0;">
-      <p style="font-weight:700; color:#8A5A2A;">先に打刻ページで登録してください</p>
-      <p style="font-size:13px; color:#7A7256;">「①打刻システムへ」のページを開き、お名前を登録してから、このページをもう一度開いてください。</p>
+  <div id="blockedCard" class="card" style="display:none; text-align:center;">
+    <p style="font-weight:700; color:#8A5A2A;">この画面は管理者のみ利用できます</p>
+  </div>
+
+  <div id="initStatusCard" class="card" style="display:none;">
+    <div class="status"></div>
+  </div>
+
+  <div class="processing-overlay" id="processingOverlay" style="display:none;">
+    <div class="processing-box">
+      <div class="spinner"></div>
+      <p id="processingText">処理中...</p>
     </div>
+  </div>
 
-    <div id="mainContent" style="display:none;">
-      <p class="card-title">シフト希望を提出</p>
-      <p class="card-sub">今日から1ヶ月先まで、希望する日を選べます</p>
-
-      <div class="tip-box">複数の日をまとめて選んでから、最後に一度で申請できます</div>
-      <div class="greeting" id="greeting"></div>
-
-      <div class="pending-badge" id="pendingBadge" style="display:none;"></div>
+  <div id="mainContent" style="display:none;">
+    <div class="card">
+      <div class="summary-grid">
+        <div class="summary-box">
+          <p class="summary-label">今月・確定分の概算経費</p>
+          <p class="summary-value" id="monthlyCost">-</p>
+        </div>
+        <div class="summary-box">
+          <p class="summary-label">未確定の希望</p>
+          <p class="summary-value" id="pendingCount">-</p>
+        </div>
+      </div>
 
       <div class="tabs">
         <button class="tab-btn active" id="tabListBtn" onclick="switchTab('list')">リスト</button>
         <button class="tab-btn" id="tabCalBtn" onclick="switchTab('calendar')">カレンダー</button>
+        <button class="tab-btn" id="tabGridBtn" onclick="switchTab('grid')">表</button>
       </div>
 
-      <div class="legend-row">
-        <span><i class="dot dot-empty"></i>未提出</span>
-        <span><i class="dot dot-pending"></i>未確定</span>
-        <span><i class="dot dot-confirmed"></i>確定</span>
-        <span><i class="dot dot-rejected"></i>見送り</span>
-      </div>
-      <p style="font-size:11px; color:#A69B7A; margin:0 0 12px;">未確定の日はタップすると内容を編集・取り消しできます（確定・見送り済みは編集できません）</p>
-
-      <div id="listView">
-        <div id="dayList"></div>
-      </div>
-
+      <div id="listView"></div>
       <div id="calendarView" style="display:none;">
-        <div class="cal-nav">
-          <button id="calPrevBtn" onclick="changeCalMonth(-1)">＜前の月</button>
-          <span class="cal-month-label" id="calMonthLabel"></span>
-          <button id="calNextBtn" onclick="changeCalMonth(1)">次の月＞</button>
-        </div>
+        <p id="calMonthLabel" style="font-size:14px; font-weight:700; margin:0 0 8px;"></p>
         <div class="calendar-grid" id="calGrid"></div>
-      </div>
-
-      <button class="btn" id="submitBtn" onclick="submitAll()">内容を確認して提出する</button>
-      <div class="status" id="status"></div>
-
-      <div class="processing-overlay" id="processingOverlay" style="display:none;">
-        <div class="processing-box">
-          <div class="spinner"></div>
-          <p id="processingText">処理中...</p>
+        <div class="legend">
+          <span><i style="background:#F7F3E9;border:1px solid #E3ECD3;"></i>確定あり</span>
+          <span><i style="background:#F0DEB8;border:1px solid #E0CC9E;"></i>未確定のみ</span>
         </div>
+        <div id="calDetail" style="margin-top:14px;"></div>
       </div>
+      <div id="gridView" style="display:none; overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;">
+        <div id="gridTableWrap"></div>
+      </div>
+
+      <div class="status" id="actionStatus"></div>
     </div>
 
-    <div class="status" id="initStatus" style="display:none;"></div>
+    <div class="card urgent-card">
+      <p class="section-title">🙋 急募を送る</p>
+      <select id="urgentDate" style="width:100%; margin-bottom:8px;"></select>
+      <div class="urgent-row">
+        <select id="urgentStart"></select>
+        <select id="urgentEnd"></select>
+      </div>
+      <button class="btn-urgent" onclick="sendUrgentCall()">全スタッフに送信</button>
+      <div class="status" id="urgentStatus"></div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">👥 従業員名簿の管理</p>
+      <p style="font-size:12px; color:#A69B7A; margin:0 0 10px;">ここに登録した氏名と一致すると、本人がLIFFページで初回登録できるようになります。</p>
+
+      <div id="rosterList" style="margin-bottom:14px;">読み込み中...</div>
+
+      <div class="urgent-row">
+        <input type="text" id="rosterName" placeholder="氏名（フルネーム）" style="flex:2;">
+        <input type="number" id="rosterWage" placeholder="時給" style="flex:1;">
+      </div>
+      <button class="btn-urgent" style="background:#3E5A1F;" onclick="addRosterEntry()">名簿に追加する</button>
+      <div class="status" id="rosterStatus"></div>
+    </div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.10</p>
-</div>
-
-<div class="modal-overlay" id="dayModal">
-  <div class="modal-box">
-    <p class="modal-title" id="modalDateLabel"></p>
-    <div class="chip-grid" id="modalChipGrid"></div>
-    <div class="custom-time" id="modalCustomTime" style="display:none; justify-content:center;">
-      <select id="modalStart"></select><span>〜</span><select id="modalEnd"></select>
-    </div>
-    <div class="modal-buttons-row">
-      <button class="modal-btn close" onclick="cancelModalBtn()">キャンセル</button>
-      <button class="modal-btn decide" id="modalDecideBtn" onclick="decideModal()" disabled>決定</button>
-    </div>
-    <p id="modalCancelLink" style="display:none; text-align:center; margin:14px 0 0;">
-      <a href="javascript:void(0)" onclick="requestCancelShift()" style="font-size:12px; color:#8B3A2E;">このシフト希望を取り消す</a>
-    </p>
-  </div>
-</div>
-
-<div class="modal-overlay" id="confirmModal">
-  <div class="modal-box">
-    <p class="modal-title" id="confirmMessage"></p>
-    <div class="modal-buttons-row">
-      <button class="modal-btn close" onclick="closeConfirm(false)">キャンセル</button>
-      <button class="modal-btn decide" style="background:#8B3A2E;" onclick="closeConfirm(true)">取り消す</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="reviewModal">
-  <div class="modal-box" style="max-width:340px;">
-    <p class="modal-title">以下の内容で提出します<span id="reviewCount" style="font-weight:400; font-size:13px; color:#A69B7A;"></span></p>
-    <p style="font-size:12px; color:#A69B7A; margin:-8px 0 12px; text-align:center;">内容をご確認のうえ「提出する」を押してください</p>
-    <div class="review-list-wrap">
-      <div id="reviewList" style="text-align:left; max-height:260px; overflow-y:auto;"></div>
-      <div class="review-fade" id="reviewFade" style="display:none;"></div>
-    </div>
-    <p id="reviewScrollHint" style="display:none; text-align:center; font-size:11px; color:#8A5A2A; margin:6px 0 12px;">↕ 下にスクロールするとすべて確認できます</p>
-    <div class="modal-buttons-row">
-      <button class="modal-btn close" onclick="closeReviewModal()">キャンセル</button>
-      <button class="modal-btn decide" onclick="confirmSubmit()">提出する</button>
-    </div>
-  </div>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.09</p>
 </div>
 
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxuUbUBdAsIa0sj8F-cIvJX0rdTpNT8b5z53fqmBLt5PXPZTYBnN1FnuZR4Ln2r-ELm4g/exec';
-var LIFF_ID = '2010745560-7uisGwZP';
+var LIFF_ID = '2010745560-uXP5sKwZ';
 
 var profile = null;
 var currentIdToken = null;
-var selections = {}; // { '2026-07-19': { type: '終日' } } または { type: 'カスタム', startTime: '09:00', endTime: '18:00' }
-var myShiftsByDate = {}; // 提出済みシフト（サーバー側の内容）を日付ごとに保持
-var calendarMonthOffset = 0; // 0=今月, 1=来月, 2=再来月（最大30日先までなので3ヶ月に収まる）
-var modalDateStr = null;
+var allShifts = [];
+var allEmployees = [];
+var gridYearMonth = '';
+var currentTab = 'list';
+var selectedCalDate = null;
 var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
 
-function toISO(d) { return d.toISOString().split('T')[0]; }
+function fillHourSelect(sel, defaultVal) {
+  sel.innerHTML = '';
+  for (var h = 6; h <= 22; h++) {
+    var opt = document.createElement('option');
+    opt.value = (h < 10 ? '0' + h : h) + ':00';
+    opt.textContent = h + '時';
+    if (opt.value === defaultVal) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
 
-var statusHideTimer = null;
-function setPageStatus(type, text) {
-  var el = document.getElementById('status');
-  clearTimeout(statusHideTimer);
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
+  document.getElementById('tabCalBtn').classList.toggle('active', tab === 'calendar');
+  document.getElementById('tabGridBtn').classList.toggle('active', tab === 'grid');
+  document.getElementById('listView').style.display = (tab === 'list') ? 'block' : 'none';
+  document.getElementById('calendarView').style.display = (tab === 'calendar') ? 'block' : 'none';
+  document.getElementById('gridView').style.display = (tab === 'grid') ? 'block' : 'none';
+  if (tab === 'calendar') renderCalendar();
+  if (tab === 'grid') renderGridTable();
+}
+
+function statusTagHtml(status) {
+  if (status === '確定') return '<span class="status-tag confirmed">確定</span>';
+  if (status === '却下') return '<span class="status-tag rejected">見送り</span>';
+  return '<span class="status-tag pending">未確定</span>';
+}
+
+function buildDecideRow(shift) {
+  var wrap = document.createElement('div');
+  wrap.className = 'decide-row';
+  var startSel = document.createElement('select');
+  var endSel = document.createElement('select');
+  fillHourSelect(startSel, shift.prefStart);
+  fillHourSelect(endSel, shift.prefEnd);
+  var confirmBtn = document.createElement('button');
+  confirmBtn.className = 'btn-confirm';
+  confirmBtn.textContent = '確定';
+  confirmBtn.onclick = function () { decideShift(shift.token, 'confirm', startSel.value, endSel.value); };
+  var rejectBtn = document.createElement('button');
+  rejectBtn.className = 'btn-reject';
+  rejectBtn.textContent = '却下';
+  rejectBtn.onclick = function () { decideShift(shift.token, 'reject'); };
+  wrap.appendChild(startSel);
+  wrap.appendChild(document.createTextNode('〜'));
+  wrap.appendChild(endSel);
+  wrap.appendChild(confirmBtn);
+  wrap.appendChild(rejectBtn);
+  return wrap;
+}
+
+function buildEntryRow(shift) {
+  var row = document.createElement('div');
+  row.className = 'entry-row';
+  var top = document.createElement('div');
+  top.className = 'entry-top';
+  var timeLabel = (shift.status === '確定') ? (shift.confStart + '〜' + shift.confEnd) : (shift.type + '希望 ' + shift.prefStart + '〜' + shift.prefEnd);
+  top.innerHTML =
+    '<span><span class="entry-name">' + shift.name + '</span> <span class="entry-sub">' + timeLabel + '</span></span>';
+  top.appendChild((function () {
+    var d = document.createElement('div');
+    d.innerHTML = statusTagHtml(shift.status);
+    return d.firstChild;
+  })());
+  row.appendChild(top);
+  if (shift.status === '未確定') row.appendChild(buildDecideRow(shift));
+  return row;
+}
+
+function renderList() {
+  var container = document.getElementById('listView');
+  container.innerHTML = '';
+  if (allShifts.length === 0) {
+    container.innerHTML = '<p style="font-size:13px; color:#A69B7A;">シフト希望はまだありません。</p>';
+    return;
+  }
+  var grouped = {};
+  allShifts.forEach(function (s) {
+    if (!grouped[s.date]) grouped[s.date] = [];
+    grouped[s.date].push(s);
+  });
+  Object.keys(grouped).sort().forEach(function (dateStr) {
+    var d = new Date(dateStr + 'T00:00:00');
+    var title = document.createElement('p');
+    title.className = 'date-group-title';
+    title.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
+    container.appendChild(title);
+    grouped[dateStr].forEach(function (s) { container.appendChild(buildEntryRow(s)); });
+  });
+}
+
+function renderGridTable() {
+  var wrap = document.getElementById('gridTableWrap');
+  if (!gridYearMonth || allEmployees.length === 0) {
+    wrap.innerHTML = '<p style="font-size:13px; color:#A69B7A;">データがありません。</p>';
+    return;
+  }
+
+  var parts = gridYearMonth.split('-');
+  var year = Number(parts[0]), month = Number(parts[1]) - 1;
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+  var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // 日付ごと・氏名ごとに、確定シフトをまとめる（同じ日に複数あれば「、」でつなぐ）
+  var byNameDate = {};
+  allShifts.forEach(function (s) {
+    if (s.status !== '確定' || s.date.indexOf(gridYearMonth) !== 0) return;
+    var key = s.name + '|' + s.date;
+    var label = s.confStart + '〜' + s.confEnd;
+    byNameDate[key] = byNameDate[key] ? (byNameDate[key] + '、' + label) : label;
+  });
+
+  var html = '<table class="grid-table"><thead><tr><th class="name-head">氏名</th>';
+  var dayCols = [];
+  for (var d = 1; d <= daysInMonth; d++) {
+    var wd = new Date(year, month, d).getDay();
+    dayCols.push(wd);
+    var cls = wd === 0 ? ' style="background:#8B3A2E;"' : (wd === 6 ? ' style="background:#3D5A75;"' : '');
+    html += '<th' + cls + '>' + (month + 1) + '/' + d + '<br>' + weekdayLabels[wd] + '</th>';
+  }
+  html += '<th>出勤日数</th></tr></thead><tbody>';
+
+  var dailyCount = new Array(daysInMonth).fill(0);
+
+  allEmployees.forEach(function (name) {
+    html += '<tr><td class="name-cell">' + name + '</td>';
+    var workDays = 0;
+    for (var d2 = 1; d2 <= daysInMonth; d2++) {
+      var dateStr = gridYearMonth + '-' + (d2 < 10 ? '0' + d2 : d2);
+      var label = byNameDate[name + '|' + dateStr];
+      var wdClass = dayCols[d2 - 1] === 0 ? ' weekend-sun' : (dayCols[d2 - 1] === 6 ? ' weekend-sat' : '');
+      if (label) {
+        html += '<td class="shift-confirmed' + wdClass + '">' + label + '</td>';
+        workDays++;
+        dailyCount[d2 - 1]++;
+      } else {
+        html += '<td class="shift-off' + wdClass + '">休み</td>';
+      }
+    }
+    html += '<td>' + workDays + '</td></tr>';
+  });
+
+  html += '<tr class="total-row"><td class="name-cell">出勤人数</td>';
+  for (var d3 = 1; d3 <= daysInMonth; d3++) {
+    html += '<td>' + dailyCount[d3 - 1] + '</td>';
+  }
+  html += '<td></td></tr></tbody></table>';
+
+  wrap.innerHTML = html;
+}
+
+function renderCalendar() {
+  var now = new Date();
+  document.getElementById('calMonthLabel').textContent = now.getFullYear() + '年' + (now.getMonth() + 1) + '月';
+
+  var grouped = {};
+  allShifts.forEach(function (s) {
+    if (!grouped[s.date]) grouped[s.date] = [];
+    grouped[s.date].push(s);
+  });
+
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  weekdayLabels.forEach(function (w) {
+    var h = document.createElement('div');
+    h.className = 'cal-head';
+    h.textContent = w;
+    grid.appendChild(h);
+  });
+
+  var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  for (var i = 0; i < firstDay.getDay(); i++) {
+    var blank = document.createElement('div');
+    blank.className = 'cal-day-blank';
+    grid.appendChild(blank);
+  }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateObj = new Date(now.getFullYear(), now.getMonth(), d);
+    var dateStr = dateObj.toISOString().split('T')[0];
+    var cell = document.createElement('div');
+    cell.className = 'cal-day';
+    var entries = grouped[dateStr] || [];
+    var hasConfirmed = entries.some(function (e) { return e.status === '確定'; });
+    var hasPending = entries.some(function (e) { return e.status === '未確定'; });
+    if (hasConfirmed) cell.classList.add('has-confirmed');
+    else if (hasPending) cell.classList.add('pending-only');
+    if (dateStr === selectedCalDate) cell.classList.add('selected');
+
+    cell.innerHTML = d + (entries.length ? '<div class="cal-count">' + entries.length + '</div>' : '');
+    cell.onclick = function (dateStr) { return function () { selectedCalDate = dateStr; renderCalendar(); }; }(dateStr);
+    grid.appendChild(cell);
+  }
+
+  var detail = document.getElementById('calDetail');
+  detail.innerHTML = '';
+  if (selectedCalDate && grouped[selectedCalDate]) {
+    var d2 = new Date(selectedCalDate + 'T00:00:00');
+    var title = document.createElement('p');
+    title.className = 'date-group-title';
+    title.textContent = (d2.getMonth() + 1) + '月' + d2.getDate() + '日(' + weekdayLabels[d2.getDay()] + ')の内訳';
+    detail.appendChild(title);
+    grouped[selectedCalDate].forEach(function (s) { detail.appendChild(buildEntryRow(s)); });
+  }
+}
+
+var statusHideTimers = {};
+function setToast(elId, type, text) {
+  var el = document.getElementById(elId);
+  clearTimeout(statusHideTimers[elId]);
   el.className = 'status show ' + type;
   el.innerHTML = '';
 
@@ -317,484 +448,165 @@ function setPageStatus(type, text) {
     track.appendChild(fill);
     el.appendChild(track);
   } else {
-    statusHideTimer = setTimeout(function () { el.classList.remove('show'); }, type === 'error' ? 4500 : 2500);
+    statusHideTimers[elId] = setTimeout(function () { el.classList.remove('show'); }, type === 'error' ? 4500 : 2500);
   }
 }
 
-function switchTab(tab) {
-  document.getElementById('tabListBtn').classList.toggle('active', tab === 'list');
-  document.getElementById('tabCalBtn').classList.toggle('active', tab === 'calendar');
-  document.getElementById('listView').style.display = (tab === 'list') ? 'block' : 'none';
-  document.getElementById('calendarView').style.display = (tab === 'calendar') ? 'block' : 'none';
-  if (tab === 'calendar') renderCalendarGrid();
+function decideShift(token, kind, startTime, endTime) {
+  showProcessing('処理中...しばらくお待ちください');
+
+  var action = (kind === 'confirm') ? 'adminConfirmShift' : 'adminRejectShift';
+  var payload = { action: action, userId: profile.userId, token: token };
+  if (kind === 'confirm') { payload.startTime = startTime; payload.endTime = endTime; }
+
+  callServer(payload).then(function (result) {
+    hideProcessing();
+    setToast('actionStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    if (result.status === 'ok') loadAdminData();
+  }).catch(function () {
+    hideProcessing();
+    setToast('actionStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
+  });
 }
 
-function statusClass(status) {
-  if (status === '確定') return 'confirmed';
-  if (status === '却下') return 'rejected';
-  return 'pending';
-}
+function sendUrgentCall() {
+  var date = document.getElementById('urgentDate').value;
+  var start = document.getElementById('urgentStart').value;
+  var end = document.getElementById('urgentEnd').value;
 
-function submittedTimeLabel(s) {
-  if (s.status === '確定') return s.confStart + '〜' + s.confEnd;
-  return (s.type === 'カスタム') ? (s.prefStart + '〜' + s.prefEnd) : s.type;
-}
-
-function submittedStatusLabel(s) {
-  if (s.status === '確定') return '確定';
-  if (s.status === '却下') return '見送り';
-  return '申請済（未確定）';
-}
-
-function updatePendingUI() {
-  var count = Object.keys(selections).length;
-  var btn = document.getElementById('submitBtn');
-  var badge = document.getElementById('pendingBadge');
-
-  if (count > 0) {
-    btn.textContent = '内容を確認して提出する（' + count + '件）';
-    btn.classList.add('has-pending');
-    btn.classList.remove('no-pending');
-    badge.style.display = 'block';
-    badge.textContent = '📝 ' + count + '件、まだ提出していません';
-  } else {
-    btn.textContent = '内容を確認して提出する';
-    btn.classList.remove('has-pending');
-    btn.classList.add('no-pending');
-    badge.style.display = 'none';
+  if (!date) {
+    setToast('urgentStatus', 'error', '日付を選んでください。');
+    return;
   }
+
+  showProcessing('送信中...しばらくお待ちください');
+
+  callServer({ action: 'adminSendUrgentCall', userId: profile.userId, shiftDate: date, startTime: start, endTime: end })
+    .then(function (result) {
+      hideProcessing();
+      setToast('urgentStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    }).catch(function () {
+      hideProcessing();
+      setToast('urgentStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
+    });
 }
 
-function buildDayList() {
-  var container = document.getElementById('dayList');
-  container.innerHTML = '';
+function loadAdminData() {
+  callServer({ action: 'adminListShifts', userId: profile.userId }).then(function (result) {
+    if (result.status !== 'ok') {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('blockedCard').style.display = 'block';
+      return;
+    }
+    allShifts = result.shifts;
+    allEmployees = result.employees || [];
+    gridYearMonth = result.yearMonth || '';
+    document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
+    document.getElementById('pendingCount').textContent = result.pendingCount + '件';
+    renderList();
+    if (currentTab === 'calendar') renderCalendar();
+    if (currentTab === 'grid') renderGridTable();
+  });
+  loadRoster();
+}
+
+function loadRoster() {
+  callServer({ action: 'adminListRoster', userId: profile.userId }).then(function (result) {
+    var el = document.getElementById('rosterList');
+    if (result.status !== 'ok') {
+      el.textContent = result.message || '取得に失敗しました。';
+      return;
+    }
+    if (!result.roster || result.roster.length === 0) {
+      el.textContent = 'まだ名簿に登録がありません。';
+      return;
+    }
+    el.innerHTML = '';
+    result.roster.forEach(function (r) {
+      var row = document.createElement('div');
+      row.className = 'roster-row';
+      row.innerHTML = '<span>' + r.name + '（時給' + Number(r.wage).toLocaleString() + '円）</span>';
+      var delLink = document.createElement('a');
+      delLink.href = 'javascript:void(0)';
+      delLink.textContent = '削除';
+      delLink.style.color = '#8B3A2E';
+      delLink.style.fontSize = '12px';
+      delLink.onclick = function (row, name) {
+        return function () {
+          if (row.dataset.confirming === 'true') {
+            deleteRosterEntry(row, name);
+            return;
+          }
+          row.dataset.confirming = 'true';
+          delLink.textContent = '本当に削除？';
+          setTimeout(function () { row.dataset.confirming = 'false'; delLink.textContent = '削除'; }, 4000);
+        };
+      }(r.row, r.name);
+      row.appendChild(delLink);
+      el.appendChild(row);
+    });
+  });
+}
+
+function addRosterEntry() {
+  var name = document.getElementById('rosterName').value.trim();
+  var wage = document.getElementById('rosterWage').value;
+  var el = document.getElementById('rosterStatus');
+
+  if (!name || !wage) {
+    setToast('rosterStatus', 'error', '氏名と時給を入力してください。');
+    return;
+  }
+
+  showProcessing('追加中...しばらくお待ちください');
+  callServer({ action: 'adminAddRosterEntry', userId: profile.userId, name: name, wage: wage }).then(function (result) {
+    hideProcessing();
+    setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    if (result.status === 'ok') {
+      document.getElementById('rosterName').value = '';
+      document.getElementById('rosterWage').value = '';
+      loadRoster();
+    }
+  }).catch(function () {
+    hideProcessing();
+    setToast('rosterStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
+  });
+}
+
+function deleteRosterEntry(row, name) {
+  showProcessing('削除中...しばらくお待ちください');
+  callServer({ action: 'adminDeleteRosterEntry', userId: profile.userId, row: row }).then(function (result) {
+    hideProcessing();
+    setToast('rosterStatus', result.status === 'ok' ? 'ok' : 'error', result.message);
+    if (result.status === 'ok') loadRoster();
+  }).catch(function () {
+    hideProcessing();
+    setToast('rosterStatus', 'error', '通信エラーが発生しました。もう一度お試しください。');
+  });
+}
+
+var todayISO = new Date().toISOString().split('T')[0];
+(function () {
+  var weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+  var sel = document.getElementById('urgentDate');
   var today = new Date();
   for (var i = 0; i < 30; i++) {
     var d = new Date();
     d.setDate(today.getDate() + i);
-    var dateStr = toISO(d);
-    var wd = d.getDay();
-    var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[wd] + ')';
-    var sel = selections[dateStr];
-    var submitted = myShiftsByDate[dateStr];
-
-    var row = document.createElement('div');
-    row.className = 'day-row' + (submitted ? ' day-row-submitted' : '');
-
-    var labelEl = document.createElement('p');
-    labelEl.className = 'day-label' + ((wd === 0 || wd === 6) ? ' weekend' : '');
-    labelEl.textContent = label;
-    row.appendChild(labelEl);
-
-    if (submitted) {
-      var infoRow = document.createElement('div');
-      infoRow.style.display = 'flex';
-      infoRow.style.justifyContent = 'space-between';
-      infoRow.style.alignItems = 'center';
-
-      var info = document.createElement('span');
-      info.className = 'day-submitted-info status-' + statusClass(submitted.status);
-      info.textContent = submittedTimeLabel(submitted) + '　' + submittedStatusLabel(submitted);
-      infoRow.appendChild(info);
-
-      if (submitted.status === '未確定') {
-        var editBtn = document.createElement('button');
-        editBtn.className = 'edit-pill';
-        editBtn.textContent = 'タップで編集';
-        editBtn.onclick = function (submitted) {
-          return function (ev) { ev.stopPropagation(); openModalForEdit(submitted); };
-        }(submitted);
-        infoRow.appendChild(editBtn);
-      }
-
-      row.appendChild(infoRow);
-      if (submitted.status === '未確定') {
-        row.style.cursor = 'pointer';
-        row.onclick = function (submitted) { return function () { openModalForEdit(submitted); }; }(submitted);
-      }
-      container.appendChild(row);
-      continue;
-    }
-
-    var chipGrid = document.createElement('div');
-    chipGrid.className = 'chip-grid';
-    ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
-      var chip = document.createElement('div');
-      chip.className = 'chip' + (sel && sel.type === type ? ' selected' : '');
-      chip.textContent = type;
-      chip.onclick = function (dateStr, type) { return function () { selectType(dateStr, type); }; }(dateStr, type);
-      chipGrid.appendChild(chip);
-    });
-    row.appendChild(chipGrid);
-
-    var customBox = document.createElement('div');
-    customBox.className = 'custom-time';
-    customBox.style.display = (sel && sel.type === 'カスタム') ? 'flex' : 'none';
-    customBox.id = 'custom-' + dateStr;
-    var startSel = document.createElement('select');
-    var endSel = document.createElement('select');
-    fillHourOptions(startSel);
-    fillHourOptions(endSel);
-    startSel.value = (sel && sel.startTime) || '';
-    endSel.value = (sel && sel.endTime) || '';
-    startSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].startTime = sel.value; renderCalendarGrid(); }; }(dateStr, startSel);
-    endSel.onchange = function (dateStr, sel) { return function () { if (selections[dateStr]) selections[dateStr].endTime = sel.value; renderCalendarGrid(); }; }(dateStr, endSel);
-    customBox.appendChild(startSel);
-    var tilde = document.createElement('span');
-    tilde.textContent = '〜';
-    customBox.appendChild(tilde);
-    customBox.appendChild(endSel);
-    row.appendChild(customBox);
-
-    container.appendChild(row);
-  }
-
-  updatePendingUI();
-}
-
-// 先頭に「-」（未選択）を含む時刻プルダウンを作る（6時〜22時、1時間単位）
-function fillHourOptions(sel) {
-  var blank = document.createElement('option');
-  blank.value = '';
-  blank.textContent = '-';
-  sel.appendChild(blank);
-  for (var h = 6; h <= 22; h++) {
+    var iso = d.toISOString().split('T')[0];
     var opt = document.createElement('option');
-    opt.value = (h < 10 ? '0' + h : h) + ':00';
-    opt.textContent = h + '時';
+    opt.value = iso;
+    opt.textContent = (d.getMonth() + 1) + '/' + d.getDate() + '(' + weekdayLabels[d.getDay()] + ')';
     sel.appendChild(opt);
   }
-}
-
-// 日付に対して区分（午前/午後/終日/カスタム）を選択・解除する（リスト用。押した瞬間に反映）
-function selectType(dateStr, type) {
-  var current = selections[dateStr];
-  if (current && current.type === type) {
-    delete selections[dateStr];
-  } else if (type === 'カスタム') {
-    var prev = (current && current.type === 'カスタム') ? current : null;
-    selections[dateStr] = { type: 'カスタム', startTime: (prev && prev.startTime) || '', endTime: (prev && prev.endTime) || '' };
-  } else {
-    selections[dateStr] = { type: type };
-  }
-  buildDayList();
-  renderCalendarGrid();
-}
-
-function changeCalMonth(delta) {
-  calendarMonthOffset = Math.max(0, Math.min(2, calendarMonthOffset + delta));
-  renderCalendarGrid();
-}
-
-function calDayLabel(sel) {
-  if (sel.type === 'カスタム') {
-    return (sel.startTime && sel.endTime) ? (sel.startTime + '〜' + sel.endTime) : 'カスタム(未設定)';
-  }
-  return sel.type;
-}
-
-function renderCalendarGrid() {
-  var today = new Date();
-  today.setHours(0, 0, 0, 0);
-  var maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + 30);
-
-  var viewMonth = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
-  document.getElementById('calMonthLabel').textContent = viewMonth.getFullYear() + '年' + (viewMonth.getMonth() + 1) + '月';
-  document.getElementById('calPrevBtn').disabled = (calendarMonthOffset <= 0);
-  document.getElementById('calNextBtn').disabled = (calendarMonthOffset >= 2);
-
-  var grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-  weekdayLabels.forEach(function (w) {
-    var h = document.createElement('div');
-    h.className = 'cal-head';
-    h.textContent = w;
-    grid.appendChild(h);
-  });
-
-  var firstDay = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  var daysInMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0).getDate();
-  for (var i = 0; i < firstDay.getDay(); i++) {
-    var blank = document.createElement('div');
-    blank.className = 'cal-day-blank';
-    grid.appendChild(blank);
-  }
-
-  for (var d = 1; d <= daysInMonth; d++) {
-    var dateObj = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d);
-    var dateStr = toISO(dateObj);
-    var inRange = (dateObj >= today && dateObj <= maxDate);
-    var submitted = myShiftsByDate[dateStr];
-    var sel = selections[dateStr];
-
-    var cell = document.createElement('div');
-    var cls = 'cal-day ' + (inRange ? 'enabled' : 'disabled');
-    var labelHtml = '';
-
-    if (inRange && submitted) {
-      cls += ' cal-status-' + statusClass(submitted.status);
-      labelHtml = '<div class="cal-type-label">' + submittedTimeLabel(submitted) + '</div>';
-      if (submitted.status === '未確定') {
-        cell.onclick = function (submitted) { return function () { openModalForEdit(submitted); }; }(submitted);
-      }
-    } else if (inRange && sel) {
-      cls += ' chosen';
-      labelHtml = '<div class="cal-type-label">' + calDayLabel(sel) + '</div>';
-      cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
-    } else if (inRange) {
-      cell.onclick = function (dateStr) { return function () { openModalForDate(dateStr); }; }(dateStr);
-    }
-
-    cell.className = cls;
-    cell.innerHTML = d + labelHtml;
-    grid.appendChild(cell);
-  }
-}
-
-// ==== モーダル（カレンダーから開く／提出済みシフトの編集で開く） ====
-// modalDraft は「決定」を押すまで確定しない一時的な選択内容
-var modalMode = 'new'; // 'new' = カレンダーから新規選択, 'edit' = 提出済みシフトの編集
-var modalToken = null;
-var modalDraft = null;
-
-function openModalForDate(dateStr) {
-  modalMode = 'new';
-  modalDateStr = dateStr;
-  modalToken = null;
-  var existing = selections[dateStr];
-  modalDraft = existing ? { type: existing.type, startTime: existing.startTime || '', endTime: existing.endTime || '' } : { type: null, startTime: '', endTime: '' };
-  renderModal();
-}
-
-function openModalForEdit(shift) {
-  modalMode = 'edit';
-  modalDateStr = shift.date;
-  modalToken = shift.token;
-  modalDraft = {
-    type: shift.type,
-    startTime: shift.type === 'カスタム' ? shift.prefStart : '',
-    endTime: shift.type === 'カスタム' ? shift.prefEnd : ''
-  };
-  renderModal();
-}
-
-function renderModal() {
-  var d = new Date(modalDateStr + 'T00:00:00');
-  document.getElementById('modalDateLabel').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
-
-  var grid = document.getElementById('modalChipGrid');
-  grid.innerHTML = '';
-  ['午前', '午後', '終日', 'カスタム'].forEach(function (type) {
-    var chip = document.createElement('div');
-    chip.className = 'chip' + (modalDraft.type === type ? ' selected' : '');
-    chip.textContent = type;
-    chip.onclick = function (type) { return function () { toggleModalType(type); }; }(type);
-    grid.appendChild(chip);
-  });
-
-  var customBox = document.getElementById('modalCustomTime');
-  var startSel = document.getElementById('modalStart');
-  var endSel = document.getElementById('modalEnd');
-  if (!startSel.options.length) {
-    fillHourOptions(startSel);
-    fillHourOptions(endSel);
-  }
-  startSel.onchange = function () { modalDraft.startTime = startSel.value; updateDecideButtonState(); };
-  endSel.onchange = function () { modalDraft.endTime = endSel.value; updateDecideButtonState(); };
-
-  if (modalDraft.type === 'カスタム') {
-    customBox.style.display = 'flex';
-    startSel.value = modalDraft.startTime || '';
-    endSel.value = modalDraft.endTime || '';
-  } else {
-    customBox.style.display = 'none';
-  }
-
-  updateDecideButtonState();
-  document.getElementById('modalCancelLink').style.display = (modalMode === 'edit') ? 'block' : 'none';
-  document.getElementById('dayModal').classList.add('show');
-}
-
-function toggleModalType(type) {
-  if (modalDraft.type === type) {
-    modalDraft.type = null;
-  } else {
-    modalDraft.type = type;
-    if (type !== 'カスタム') { modalDraft.startTime = ''; modalDraft.endTime = ''; }
-  }
-  renderModal();
-}
-
-function updateDecideButtonState() {
-  var valid = !!modalDraft.type && (modalDraft.type !== 'カスタム' || (modalDraft.startTime && modalDraft.endTime));
-  document.getElementById('modalDecideBtn').disabled = !valid;
-}
-
-function decideModal() {
-  if (!modalDraft.type) return;
-  if (modalDraft.type === 'カスタム' && (!modalDraft.startTime || !modalDraft.endTime)) return;
-
-  if (modalMode === 'new') {
-    selections[modalDateStr] = { type: modalDraft.type, startTime: modalDraft.startTime, endTime: modalDraft.endTime };
-    buildDayList();
-    renderCalendarGrid();
-    closeModal();
-  } else {
-    var token = modalToken;
-    var draft = modalDraft;
-    closeModal();
-    callServer({
-      action: 'updateShift', userId: profile.userId, token: token,
-      type: draft.type, startTime: draft.startTime, endTime: draft.endTime
-    }).then(function (result) {
-      setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-      if (result.status === 'ok') loadMyShifts();
-    });
-  }
-}
-
-function cancelModalBtn() {
-  closeModal();
-}
-
-function closeModal() {
-  document.getElementById('dayModal').classList.remove('show');
-  modalDateStr = null;
-  modalToken = null;
-  modalDraft = null;
-}
-
-// ==== 汎用の確認ポップアップ ====
-var confirmResolver = null;
-
-function showConfirm(message) {
-  document.getElementById('confirmMessage').textContent = message;
-  document.getElementById('confirmModal').classList.add('show');
-  return new Promise(function (resolve) { confirmResolver = resolve; });
-}
-
-function closeConfirm(result) {
-  document.getElementById('confirmModal').classList.remove('show');
-  if (confirmResolver) { confirmResolver(result); confirmResolver = null; }
-}
-
-function requestCancelShift() {
-  var token = modalToken;
-  closeModal();
-  showConfirm('このシフト希望を取り消しますか？').then(function (ok) {
-    if (!ok) return;
-    performCancelShift(token);
-  });
-}
-
-var pendingEntries_ = null;
-
-function submitAll() {
-  var entries = [];
-  var incomplete = false;
-  Object.keys(selections).forEach(function (dateStr) {
-    var sel = selections[dateStr];
-    if (sel.type === 'カスタム' && (!sel.startTime || !sel.endTime)) { incomplete = true; return; }
-    var entry = { date: dateStr, type: sel.type, startTime: sel.startTime, endTime: sel.endTime };
-    entries.push(entry);
-  });
-
-  if (incomplete) {
-    setPageStatus('error', 'カスタムの時間が未選択の日があります。開始・終了時刻を選んでください。');
-    return;
-  }
-  if (entries.length === 0) {
-    setPageStatus('error', '希望する日を1つ以上選んでください。');
-    return;
-  }
-
-  pendingEntries_ = entries;
-  openReviewModal(entries);
-}
-
-function openReviewModal(entries) {
-  var list = document.getElementById('reviewList');
-  list.innerHTML = '';
-  var sorted = entries.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-  document.getElementById('reviewCount').textContent = '（' + sorted.length + '件）';
-  sorted.forEach(function (e) {
-    var d = new Date(e.date + 'T00:00:00');
-    var label = (d.getMonth() + 1) + '月' + d.getDate() + '日(' + weekdayLabels[d.getDay()] + ')';
-    var typeLabel = (e.type === 'カスタム') ? (e.startTime + '〜' + e.endTime) : e.type;
-    var row = document.createElement('div');
-    row.className = 'review-row';
-    row.innerHTML = '<span>' + label + '</span><span>' + typeLabel + '</span>';
-    list.appendChild(row);
-  });
-  document.getElementById('reviewModal').classList.add('show');
-
-  setTimeout(function () {
-    var scrollable = list.scrollHeight > list.clientHeight + 4;
-    document.getElementById('reviewFade').style.display = scrollable ? 'block' : 'none';
-    document.getElementById('reviewScrollHint').style.display = scrollable ? 'block' : 'none';
-  }, 0);
-}
-
-function closeReviewModal() {
-  document.getElementById('reviewModal').classList.remove('show');
-}
-
-function confirmSubmit() {
-  var entries = pendingEntries_;
-  closeReviewModal();
-  if (!entries) return;
-
-  showProcessing('送信中...しばらくお待ちください');
-  document.getElementById('submitBtn').disabled = true;
-
-  callServer({ action: 'submitShiftBatch', userId: profile.userId, displayName: profile.displayName, entries: entries })
-    .then(function (result) {
-      hideProcessing();
-      setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-      document.getElementById('submitBtn').disabled = false;
-      if (result.status === 'ok') {
-        selections = {};
-        pendingEntries_ = null;
-        buildDayList();
-        renderCalendarGrid();
-        loadMyShifts();
-      }
-    }).catch(function () {
-      hideProcessing();
-      setPageStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-      document.getElementById('submitBtn').disabled = false;
-    });
-}
-
-function loadMyShifts() {
-  callServer({ action: 'listMyShifts', userId: profile.userId }).then(function (result) {
-    myShiftsByDate = {};
-    if (result.status === 'ok' && result.shifts) {
-      result.shifts.forEach(function (s) { myShiftsByDate[s.date] = s; });
-    }
-    buildDayList();
-    renderCalendarGrid();
-  });
-}
-
-function performCancelShift(token) {
-  showProcessing('取り消し中...しばらくお待ちください');
-  callServer({ action: 'cancelShift', userId: profile.userId, token: token }).then(function (result) {
-    hideProcessing();
-    setPageStatus(result.status === 'ok' ? 'ok' : 'error', result.message);
-    if (result.status === 'ok') loadMyShifts();
-  }).catch(function () {
-    hideProcessing();
-    setPageStatus('error', '通信エラーが発生しました。もう一度お試しください。');
-  });
-}
-
-buildDayList();
+})();
+fillHourSelect(document.getElementById('urgentStart'), '09:00');
+fillHourSelect(document.getElementById('urgentEnd'), '13:00');
 
 if (typeof liff === 'undefined') {
-  document.getElementById('initStatus').className = 'status show error';
-  document.getElementById('initStatus').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
+  document.getElementById('initStatusCard').style.display = 'block';
+  document.querySelector('#initStatusCard .status').className = 'status show error';
+  document.querySelector('#initStatusCard .status').textContent = 'LIFF SDKの読み込みに失敗しました。開き直してください。';
 } else {
   showProcessing('読み込み中...しばらくお待ちください');
   withTimeout(liff.init({ liffId: LIFF_ID }), 10000).then(function () {
@@ -803,24 +615,27 @@ if (typeof liff === 'undefined') {
   }).then(function (p) {
     profile = p;
     currentIdToken = liff.getIDToken();
-    return callServer({ action: 'shiftInit', userId: p.userId });
+    return callServer({ action: 'adminListShifts', userId: p.userId });
   }).then(function (result) {
     hideProcessing();
-    document.getElementById('initStatus').style.display = 'none';
-    if (result.status === 'ok') {
-      document.getElementById('mainContent').style.display = 'block';
-      document.getElementById('greeting').textContent = result.name + ' さん';
-      myShiftsByDate = {};
-      (result.shifts || []).forEach(function (s) { myShiftsByDate[s.date] = s; });
-      buildDayList();
-      renderCalendarGrid();
-    } else {
-      document.getElementById('blockedMessage').style.display = 'block';
+    document.getElementById('initStatusCard').style.display = 'none';
+    if (result.status !== 'ok') {
+      document.getElementById('blockedCard').style.display = 'block';
+      return;
     }
+    document.getElementById('mainContent').style.display = 'block';
+    allShifts = result.shifts;
+    allEmployees = result.employees || [];
+    gridYearMonth = result.yearMonth || '';
+    document.getElementById('monthlyCost').textContent = Number(result.monthlyEstimatedCost).toLocaleString() + '円';
+    document.getElementById('pendingCount').textContent = result.pendingCount + '件';
+    renderList();
+    loadRoster();
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
     hideProcessing();
-    var el = document.getElementById('initStatus');
+    document.getElementById('initStatusCard').style.display = 'block';
+    var el = document.querySelector('#initStatusCard .status');
     el.className = 'status show error';
     el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
   });
