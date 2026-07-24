@@ -267,7 +267,7 @@
   </div>
 
   <p class="location-notice">生産・収穫・作業記録のため、位置情報を取得してます。</p>
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.11</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:10px;">v1.12</p>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none;">
@@ -628,10 +628,15 @@ if (typeof liff === 'undefined') {
     }
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return; // ログイン画面へ遷移中なので何もしない
-    hideProcessing();
     var detail = (err && err.message) ? err.message
                : (typeof err === 'string') ? err
                : JSON.stringify(err);
+    if (detail.indexOf('revoked') !== -1 || detail.indexOf('token') !== -1 || detail.indexOf('expired') !== -1) {
+      try { liff.logout(); } catch (e) {}
+      window.location.reload();
+      return;
+    }
+    hideProcessing();
     setStatus('error', '初期化エラー：' + detail + '\n(この文言をそのまま開発者に伝えてください)');
   });
 }
