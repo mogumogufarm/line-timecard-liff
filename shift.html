@@ -238,7 +238,7 @@
     <div class="status" id="initStatus" style="display:none;"></div>
   </div>
 
-  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.10</p>
+  <p style="text-align:center; font-size:10px; color:#A69B7A; margin-top:20px;">v1.11</p>
 </div>
 
 <div class="modal-overlay" id="dayModal">
@@ -819,10 +819,16 @@ if (typeof liff === 'undefined') {
     }
   }).catch(function (err) {
     if (err === 'LOGIN_REDIRECT') return;
+    var msg = (err && err.message) ? err.message : String(err);
+    if (msg.indexOf('revoked') !== -1 || msg.indexOf('token') !== -1 || msg.indexOf('expired') !== -1) {
+      try { liff.logout(); } catch (e) {}
+      window.location.reload();
+      return;
+    }
     hideProcessing();
     var el = document.getElementById('initStatus');
     el.className = 'status show error';
-    el.textContent = '初期化エラー：' + ((err && err.message) ? err.message : err);
+    el.textContent = '初期化エラー：' + msg;
   });
 }
 </script>
