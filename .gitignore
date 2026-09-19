@@ -1,0 +1,44 @@
+# Environment Configuration
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# PHP
+vendor/
+composer.lock
+
+# Node (if used in future)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+*.tmp
+*.bak
+*~
+.swp
+.swo
+
+# Database dumps
+*.sql
+*.dump
+!schema.sql
+
+# Session files
+session/
+tmp/
+cache/
+
+# Uploaded files (if any)
+uploads/
